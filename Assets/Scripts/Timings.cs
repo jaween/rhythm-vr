@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class Timings 
 {
-    private const float leeway = 0.5f;
-    private const float leewayMiss = 0.5f;
+    private const float leeway = 0.1f;
+    private const float leewayMiss = 0.08f;
 
     private int currentTimingIndex = -1;
     private float currentTiming = -1;
@@ -57,7 +57,8 @@ public class Timings
             // TODO(jaween): Separate out player timings and level timings
             return TimingResult.IGNORE_ATTEMPT;
         } 
-        else if (ellapsedTime > currentTiming - leeway && ellapsedTime < currentTiming + leeway)
+        else if (ellapsedTime >= currentTiming - leeway && 
+            ellapsedTime <= currentTiming + leeway)
         {
             moveToNextTiming();
             return TimingResult.GOOD;

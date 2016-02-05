@@ -7,12 +7,10 @@ public class CardboardHeadController : MonoBehaviour
     public bool trackPosition = true;
 
     public bool updateEarly = false;
-    public Text debugText;
     public Choreographer choreographer;
 
     private Quaternion previousRotation;
     private float lastNodTime;
-
 
     public Ray Gaze
     {
@@ -41,8 +39,6 @@ public class CardboardHeadController : MonoBehaviour
 
     void Update()
     {
-        debugText.text = "AccMag is " + Input.acceleration.magnitude;
-
         updated = false;  // OK to recompute head pose.
         if (updateEarly)
         {
