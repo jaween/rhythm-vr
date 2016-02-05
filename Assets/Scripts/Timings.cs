@@ -4,11 +4,12 @@ using System.Collections.Generic;
 
 public class Timings 
 {
-    private const float leeway = 500;
-    private const float leewayMiss = 250;
+    private const float leeway = 0.5f;
+    private const float leewayMiss = 0.5f;
 
     private int currentTimingIndex = -1;
-    private float currentTiming;
+    private float currentTiming = -1;
+    private bool finished = false;
 
     private List<float> timings;
 
@@ -17,21 +18,31 @@ public class Timings
         GOOD, BAD, MISS, IGNORE_ATTEMPT
     }
 
-    Timings(List<float> timings)
+    public Timings(List<float> timings)
     {
         this.timings = timings;
         moveToNextTiming();
     }
 
-    private void moveToNextTiming()
+    private bool moveToNextTiming()
     {
         currentTimingIndex++;
-        currentTiming = timings[currentTimingIndex];
+        if (currentTimingIndex < timings.Count)
+        {
+            currentTiming = timings[currentTimingIndex];
+            return true;
+        }
+
+        // No more timings
+        finished = true;
+        currentTimingIndex = -1;
+        currentTiming = -1;
+        return false;
     }
 
     public TimingResult checkForMiss(float ellapsedTime)
     {
-        if (ellapsedTime > currentTiming + leeway + leewayMiss)
+        if (!finished && ellapsedTime > currentTiming + leeway + leewayMiss)
         {
             moveToNextTiming();
             return TimingResult.MISS;
@@ -41,12 +52,18 @@ public class Timings
 
     public TimingResult checkAttempt(float ellapsedTime)
     {
-        if (ellapsedTime > currentTiming - leeway && ellapsedTime < currentTiming + leeway)
+        if (finished)
+        {
+            // TODO(jaween): Separate out player timings and level timings
+            return TimingResult.IGNORE_ATTEMPT;
+        } 
+        else if (ellapsedTime > currentTiming - leeway && ellapsedTime < currentTiming + leeway)
         {
             moveToNextTiming();
             return TimingResult.GOOD;
         }
-        else if (ellapsedTime > currentTiming - leeway - leewayMiss && ellapsedTime < currentTiming + leeway + leewayMiss)
+        else if (ellapsedTime > currentTiming - leeway - leewayMiss && 
+            ellapsedTime < currentTiming + leeway + leewayMiss)
         {
             moveToNextTiming();
             return TimingResult.BAD;

@@ -8,7 +8,7 @@ public class CardboardHeadController : MonoBehaviour
 
     public bool updateEarly = false;
     public Text debugText;
-    public AudioSource tempAudio;
+    public Choreographer choreographer;
 
     private Quaternion previousRotation;
     private float lastNodTime;
@@ -81,6 +81,10 @@ public class CardboardHeadController : MonoBehaviour
     void FixedUpdate()
     {
         CheckForNod(Input.acceleration);
+        if (Input.GetMouseButtonDown(0))
+        {
+            choreographer.UserBeat();
+        }
         previousRotation = transform.rotation;
     }
 
@@ -95,7 +99,7 @@ public class CardboardHeadController : MonoBehaviour
         if (deltaTime > nodTimeDelay && magnitude > nodThreshold)
         {
             lastNodTime = Time.time;
-            tempAudio.Play();
+            choreographer.UserBeat();
         }
     }
 }
