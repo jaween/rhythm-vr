@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Timings 
+public class TimingsManager 
 {
     private const float leeway = 0.1f;
     private const float leewayMiss = 0.08f;
@@ -18,7 +18,7 @@ public class Timings
         GOOD, BAD, MISS, IGNORE_ATTEMPT
     }
 
-    public Timings(List<float> timings)
+    public TimingsManager(List<float> timings)
     {
         this.timings = timings;
         moveToNextTiming();
@@ -73,5 +73,15 @@ public class Timings
         {
             return TimingResult.IGNORE_ATTEMPT;
         }
+    }
+
+    public List<float> Timings
+    {
+        get { return timings; }
+    }
+
+    public int CurrentTimingIndex
+    {
+        get { return currentTimingIndex; }
     }
 }
