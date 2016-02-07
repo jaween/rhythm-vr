@@ -7,7 +7,7 @@ public class CardboardHeadController : MonoBehaviour
     public bool trackPosition = true;
 
     public bool updateEarly = false;
-    public Choreographer choreographer;
+    public BaseChoreographer choreographer;
 
     private Quaternion previousRotation;
     private float lastNodTime;
@@ -76,15 +76,12 @@ public class CardboardHeadController : MonoBehaviour
 
     void FixedUpdate()
     {
-        CheckForNod(Input.acceleration);
-        if (Input.GetMouseButtonDown(0))
-        {
-            choreographer.UserBeat();
-        }
+        DetectAndDispatchHeadMotionInput(Input.acceleration);
+
         previousRotation = transform.rotation;
     }
 
-    void CheckForNod(Vector3 acceleration)
+    void DetectAndDispatchHeadMotionInput(Vector3 acceleration)
     {
         float deltaTime = Time.time - lastNodTime;
         const float nodTimeDelay = 0.4f;
@@ -92,10 +89,27 @@ public class CardboardHeadController : MonoBehaviour
         float magnitude = acceleration.magnitude;
         const float nodThreshold = 1.1f;
 
+        // Nod gesture
         if (deltaTime > nodTimeDelay && magnitude > nodThreshold)
         {
             lastNodTime = Time.time;
-            choreographer.UserBeat();
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_NOD);
+        }
+        // TODO(jaween): Detect deep nod gestures
+        // TODO(jaween): Detect head tilt gesture
+
+        // Debug input
+        if (Input.GetMouseButtonDown(0))
+        {
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_NOD);
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_DOWN);
+        }
+        if (Input.GetMouseButtonUp(1))
+        {
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP);
         }
     }
 }

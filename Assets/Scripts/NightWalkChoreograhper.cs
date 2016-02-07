@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class NightWalkChoreograhper : Choreographer
+public class NightWalkChoreograhper : BaseChoreographer
 {
     public GameObject poleBox;
     public NightWalkCharacterController characterController;
@@ -12,13 +12,11 @@ public class NightWalkChoreograhper : Choreographer
 
     private Queue<GameObject> poleBoxes = new Queue<GameObject>();
     private int instantiatedIndex = -1;
+    private float characterRadius;
 
-    private new void Awake()
+    protected override void Initialise()
     {
-        base.Awake();
-
         // TODO(jaween): Load these from a file
-        //this.timings = timings;
         var times = new List<float>() {
             90.426431f,
             90.975231f,
@@ -39,51 +37,34 @@ public class NightWalkChoreograhper : Choreographer
             99.076673f,
             99.635101f
         };
+
+        // Temp offset due to using the wrong file to do timings
         for (var i = 0; i < times.Count; i++)
         {
             times[i] -= 83.55f;
         }
         TimingsManager tempTimings = new TimingsManager(times);
         this.timings = tempTimings;
-    }
 
-    private new void Start()
-    {
         musicAudioSource.time = timings.Timings[timings.CurrentTimingIndex] - 3.0f;
-        base.Start();
+
+        characterRadius = characterController.transform.position.z;
 
         // Debug UI
         slider.maxValue = musicAudioSource.clip.length;
         slider.minValue = 0;
     }
 
-    private new void FixedUpdate()
-    {
-        base.FixedUpdate();
-
-        float radius = 3;
-
-        CreatePoles(radius);
-
-        // Debug input
-        if (Input.GetButton("Fire1"))
-        {
-            characterController.Jump();
-        }
-        if (Input.GetButton("Fire2"))
-        {
-            characterController.Roll();
-        }
-        if (Input.GetButtonUp("Fire2"))
-        {
-            characterController.EndRoll();
-        }
+    protected override void GameUpdate()
+    { 
+        CreatePoles();
+        HandleInput();
 
         // Update debug UI
         slider.value = musicAudioSource.time;
     }
 
-    private void CreatePoles(float radius)
+    private void CreatePoles()
     {
         if (instantiatedIndex < timings.CurrentTimingIndex + 5 && 
             timings.CurrentTimingIndex + 5 < timings.Timings.Count)
@@ -93,8 +74,8 @@ public class NightWalkChoreograhper : Choreographer
             float startAngle = 90f;
             float angleGap = 14f;
             float value = startAngle - instantiatedIndex * angleGap * Mathf.Deg2Rad;
-            float x = Mathf.Cos(value) * radius;
-            float z = Mathf.Sin(value) * radius;
+            float x = Mathf.Cos(value) * characterRadius;
+            float z = Mathf.Sin(value) * characterRadius;
             
             Vector3 position = new Vector3(x, -1.0f, z);
             Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
@@ -105,6 +86,27 @@ public class NightWalkChoreograhper : Choreographer
                 GameObject oldBox = poleBoxes.Dequeue();
                 Destroy(oldBox);
             }
+        }
+    }
+
+    private void HandleInput()
+    {
+        switch (playerAction)
+        {
+            case PlayerAction.MOTION_NOD:
+                characterController.Jump();
+                break;
+            case PlayerAction.MOTION_DEEP_NOD_DOWN:
+                characterController.Roll();
+                break;
+            case PlayerAction.MOTION_DEEP_NOD_UP:
+                characterController.EndRoll();
+                break;
+            case PlayerAction.MOTION_HEAD_TILT:
+            case PlayerAction.NONE:
+                break;
+            default:
+                break;
         }
     }
 }

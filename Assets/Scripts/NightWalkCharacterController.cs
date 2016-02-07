@@ -11,6 +11,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private float jumpStartTime;
     private float angle = 90 * Mathf.Deg2Rad;
     private float rollAngle = 0;
+    private float ratioOfJump = 0;
     private float groundY;
     private float radius;
     
@@ -32,14 +33,15 @@ public class NightWalkCharacterController : MonoBehaviour
         if (isJumping)
         {
             float duration = Time.time - jumpStartTime;
-            float timeInAirMultiplier = 327;
-            float up = jumpHeight *
-                Mathf.Sin(duration * timeInAirMultiplier * Mathf.Deg2Rad);
-            newPosition.y = groundY + up;
+            const float timeInAirMultiplier = 327;
+            ratioOfJump = Mathf.Sin(duration * timeInAirMultiplier * Mathf.Deg2Rad);
+            float heightAboveGround = jumpHeight * ratioOfJump;
+            newPosition.y = groundY + heightAboveGround;
 
-            if (up < 0)
+            if (heightAboveGround < 0)
             {
                 newPosition.y = groundY;
+                ratioOfJump = 0;
                 isJumping = false;
                 animator.SetBool("IsJumping", isJumping);
             }
@@ -47,22 +49,32 @@ public class NightWalkCharacterController : MonoBehaviour
 
         transform.position = newPosition;
         transform.rotation = Quaternion.LookRotation(newPosition, Vector3.up);
-        transform.rotation *= Quaternion.Euler(0.0f, 0.0f, -rollAngle);
+
+        if (isRolling)
+        {
+            rollAngle += 360 * Time.fixedDeltaTime * 2;
+            transform.rotation *= Quaternion.Euler(0.0f, 0.0f, -rollAngle);
+        }
     }
 
     public void Jump()
     {
-        if (!isJumping)
+        // While the jump ratio is below this threshold the player can make
+        // the character jump again, this makes the controls feel nicer
+        const float jumpWhileJumpingThreshold = 0.4f;
+
+        if (!isJumping || ratioOfJump < jumpWhileJumpingThreshold)
         {
             jumpStartTime = Time.time;
             isJumping = true;
+            isRolling = false;
             animator.SetBool("IsJumping", isJumping);
         }
     }
 
     public void Roll()
     {
-        rollAngle += 360 * Time.fixedDeltaTime * 2;
+        isJumping = false;
         isRolling = true;
         animator.SetBool("IsRolling", isRolling);
     }
