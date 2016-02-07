@@ -2,15 +2,19 @@
 using UnityEngine.UI;
 
 public class CardboardHeadController : MonoBehaviour
-{    
+{
+    public delegate void HeadUpdatedDelegate(GameObject head);
+    public event HeadUpdatedDelegate OnHeadUpdated;
+    public BaseChoreographer choreographer;
+    public bool updateEarly = false;
     public bool trackRotation = true;
     public bool trackPosition = true;
 
-    public bool updateEarly = false;
-    public BaseChoreographer choreographer;
-
     private Quaternion previousRotation;
     private float lastNodTime;
+    private bool updated;
+    private BaseChoreographer.PlayerAction debugStoredAction = 
+        BaseChoreographer.PlayerAction.NONE;
 
     public Ray Gaze
     {
@@ -21,33 +25,30 @@ public class CardboardHeadController : MonoBehaviour
         }
     }
 
-    public delegate void HeadUpdatedDelegate(GameObject head);
-    public event HeadUpdatedDelegate OnHeadUpdated;
-
-    void Awake()
+    private void Awake()
     {
         Cardboard.Create();
     }
 
-    void Start()
+    private void Start()
     {
         previousRotation = Cardboard.SDK.HeadPose.Orientation;
         lastNodTime = Time.time;
     }
 
-    private bool updated;
-
-    void Update()
+    private void Update()
     {
         updated = false;  // OK to recompute head pose.
         if (updateEarly)
         {
             UpdateHead();
         }
+
+        DebugInput();
     }
 
     // Normally, update head pose now.
-    void LateUpdate()
+    private void LateUpdate()
     {
         UpdateHead();
     }
@@ -74,14 +75,14 @@ public class CardboardHeadController : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         DetectAndDispatchHeadMotionInput(Input.acceleration);
 
         previousRotation = transform.rotation;
     }
 
-    void DetectAndDispatchHeadMotionInput(Vector3 acceleration)
+    private void DetectAndDispatchHeadMotionInput(Vector3 acceleration)
     {
         float deltaTime = Time.time - lastNodTime;
         const float nodTimeDelay = 0.4f;
@@ -99,17 +100,24 @@ public class CardboardHeadController : MonoBehaviour
         // TODO(jaween): Detect head tilt gesture
 
         // Debug input
+        choreographer.InputAction(debugStoredAction);
+        debugStoredAction = BaseChoreographer.PlayerAction.NONE;
+    }
+
+    private void DebugInput()
+    {
+        // Debug input
         if (Input.GetMouseButtonDown(0))
         {
-            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_NOD);
+            debugStoredAction = BaseChoreographer.PlayerAction.MOTION_NOD;
         }
         if (Input.GetMouseButtonDown(1))
         {
-            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_DOWN);
+            debugStoredAction = BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_DOWN;
         }
         if (Input.GetMouseButtonUp(1))
         {
-            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP);
+            debugStoredAction = BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP;
         }
     }
 }
