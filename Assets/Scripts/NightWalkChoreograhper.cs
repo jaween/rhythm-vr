@@ -2,17 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
 
 public class NightWalkChoreograhper : BaseChoreographer
 {
-    public GameObject poleBox;
+    public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public Slider slider;
     public float jumpHeight = 1;
+    public float groundY;
 
-    private Queue<GameObject> poleBoxes = new Queue<GameObject>();
-    private int instantiatedIndex = -1;
+    private Dictionary<float, PoleBoxController> poleBoxes =
+        new Dictionary<float, PoleBoxController>();
+    private int nextIndexToInstantiate = 0;
+    private int nextIndexToDestroy = 0;
     private float characterRadius;
+    private float debugMusicStartOffset;
+    private PoleBoxController previousPoleBox = null;
 
     protected override void Initialise()
     {
@@ -46,8 +52,11 @@ public class NightWalkChoreograhper : BaseChoreographer
         TimingsManager tempTimings = new TimingsManager(times);
         this.timings = tempTimings;
 
-        musicAudioSource.time = timings.Timings[timings.CurrentTimingIndex] - 3.0f;
+        // Saves time to skip the intro music when debugging
+        debugMusicStartOffset = timings.Timings[timings.CurrentTimingIndex] - 3.0f;
+        musicAudioSource.time = debugMusicStartOffset;
 
+        groundY = characterController.transform.position.y - 0.5f;
         characterRadius = characterController.transform.position.z;
 
         // Debug UI
@@ -56,35 +65,105 @@ public class NightWalkChoreograhper : BaseChoreographer
     }
 
     protected override void GameUpdate()
-    { 
-        CreatePoles();
+    {
+        CreateAndDestroyPoles();
         HandleInput();
 
         // Update debug UI
         slider.value = musicAudioSource.time;
     }
 
-    private void CreatePoles()
+    protected override void PlayerTimingResult(
+        TimingsManager.TimingResult result)
     {
-        if (instantiatedIndex < timings.CurrentTimingIndex + 5 && 
-            timings.CurrentTimingIndex + 5 < timings.Timings.Count)
+        if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
         {
-            instantiatedIndex++;
+            return;
+        }
 
-            float startAngle = 90f;
-            float angleGap = 14f;
-            float value = startAngle - instantiatedIndex * angleGap * Mathf.Deg2Rad;
-            float x = Mathf.Cos(value) * characterRadius;
-            float z = Mathf.Sin(value) * characterRadius;
-            
-            Vector3 position = new Vector3(x, -1.0f, z);
-            Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
-            GameObject box = (GameObject)GameObject.Instantiate(poleBox, position, rotation);
-            poleBoxes.Enqueue(box);
-            if (poleBoxes.Count > 10)
+        // TODO(jaween): Fix ArgumentOutOfRangeException after final timing
+        float timing = timings.Timings[timings.CurrentTimingIndex - 1];
+        PoleBoxController poleBox = poleBoxes[timing];
+
+        if (result == TimingsManager.TimingResult.GOOD)
+        {
+            TempPlaySound(positiveSoundEffect);
+            poleBox.Pop(true);
+        }
+        else if (result == TimingsManager.TimingResult.BAD ||
+                 result == TimingsManager.TimingResult.MISS)
+        {
+            TempPlaySound(negativeSoundEffect);
+            poleBox.Pop(false);
+        }
+    }
+
+    private void CreateAndDestroyPoles()
+    {
+        const float secondsInAdvance = 6;
+        const float secondsBehind = 4;
+        float leadingTime = musicAudioSource.time + secondsInAdvance;
+        float laggingTime = musicAudioSource.time - secondsBehind;
+
+        if (nextIndexToInstantiate < timings.Timings.Count)
+        {
+            float previousTiming = timings.Timings[nextIndexToInstantiate];
+            const float longThreshold = 0.6f;
+            const float shortThreshold = 0.4f;
+
+            if (nextIndexToInstantiate > 0)
             {
-                GameObject oldBox = poleBoxes.Dequeue();
-                Destroy(oldBox);
+                previousTiming = timings.Timings[nextIndexToInstantiate - 1];
+            }
+
+            float timing = timings.Timings[nextIndexToInstantiate];
+            if (leadingTime >= timing)
+            {
+                const float degreesPerSecond = 18f;
+                const float startAngleDegrees = 90f;
+
+                float angleOffsetDegrees = 
+                    (timing - debugMusicStartOffset) * degreesPerSecond;
+                float angle = (startAngleDegrees - angleOffsetDegrees) * 
+                    Mathf.Deg2Rad;
+                float x = Mathf.Cos(angle) * characterRadius;
+                float y = groundY;
+                float z = Mathf.Sin(angle) * characterRadius;
+
+                Vector3 position = new Vector3(x, y, z);
+                Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
+                PoleBoxController poleBox = (PoleBoxController) Instantiate(
+                    poleBoxPrefab, position, rotation);
+                float timeDelta = timing - previousTiming;
+                if (timeDelta < shortThreshold && previousPoleBox != null)
+                {
+                    previousPoleBox.ShowPlatform(PoleBoxController.PlatformType.PLATFORM_SHORT);
+                }
+                else if (timeDelta > longThreshold && previousPoleBox != null)
+                {
+                    previousPoleBox.ShowPlatform(PoleBoxController.PlatformType.PLATFORM_LONG);
+                }
+                else if (previousPoleBox != null)
+                {
+                    previousPoleBox.ShowPlatform(PoleBoxController.PlatformType.PLATFORM_MEDIUM);
+                }
+                poleBoxes.Add(timing, poleBox);
+                previousPoleBox = poleBox;
+
+                nextIndexToInstantiate++;
+            }
+        }
+
+        // Destroys pole boxes
+        if (nextIndexToDestroy < timings.Timings.Count)
+        {
+            float nextToDestroyTiming = timings.Timings[nextIndexToDestroy];
+            if (nextToDestroyTiming < laggingTime)
+            {
+                PoleBoxController oldBox = poleBoxes[nextToDestroyTiming];
+                poleBoxes.Remove(nextToDestroyTiming);
+                oldBox.DestroyPoleBox();
+                nextIndexToDestroy++;
             }
         }
     }
@@ -108,5 +187,11 @@ public class NightWalkChoreograhper : BaseChoreographer
             default:
                 break;
         }
+    }
+
+    private void TempPlaySound(AudioClip clip)
+    {
+        soundEffectsAudioSource.clip = clip;
+        soundEffectsAudioSource.Play();
     }
 }

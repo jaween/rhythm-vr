@@ -44,42 +44,37 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     private void HandleTimings()
     {
+        TimingsManager.TimingResult result;
+        bool debugWorthShowing = true;
         if (playerAction != PlayerAction.NONE)
         {
-            TimingsManager.TimingResult result = timings.checkAttempt(musicAudioSource.time);
-            Debug.Log("BaseChoreographer " + Time.time + ": " + result.ToString());
-            if (result == TimingsManager.TimingResult.GOOD)
-            {
-                TempPlaySound(positiveSoundEffect);
-            }
-            else if (result == TimingsManager.TimingResult.BAD)
-            {
-                TempPlaySound(negativeSoundEffect);
-            }
+            result = timings.checkAttempt(musicAudioSource.time);
         }
         else
         {
-            // User didn't make an attempt and had missed the timing
-            if (timings.checkForMiss(musicAudioSource.time) == TimingsManager.TimingResult.MISS)
+            // User didn't make an attempt and had missed the timing window
+            result = timings.checkForMiss(musicAudioSource.time);
+
+            if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
             {
-                if (showDebugTimingResults)
-                {
-                    Debug.Log("BaseChoreograhper " + Time.time + ": " + TimingsManager.TimingResult.MISS.ToString());
-                }
-                TempPlaySound(negativeSoundEffect);
+                debugWorthShowing = false;
             }
         }
-    }
 
-    private void TempPlaySound(AudioClip clip)
-    {
-        soundEffectsAudioSource.clip = clip;
-        soundEffectsAudioSource.Play();
+        if (showDebugTimingResults && debugWorthShowing)
+        {
+            Debug.Log("BaseChoreographer " + Time.time + ": " + result.ToString());
+        }
+
+        PlayerTimingResult(result);
     }
 
     protected abstract void Initialise();
 
     protected abstract void GameUpdate();
+
+    protected abstract void PlayerTimingResult(
+        TimingsManager.TimingResult result);
 
     public void InputAction(PlayerAction playerAction)
     {

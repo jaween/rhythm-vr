@@ -6,6 +6,7 @@ public class CardboardHeadController : MonoBehaviour
     public delegate void HeadUpdatedDelegate(GameObject head);
     public event HeadUpdatedDelegate OnHeadUpdated;
     public BaseChoreographer choreographer;
+    public Text debugText;
     public bool updateEarly = false;
     public bool trackRotation = true;
     public bool trackPosition = true;
@@ -85,10 +86,12 @@ public class CardboardHeadController : MonoBehaviour
     private void DetectAndDispatchHeadMotionInput(Vector3 acceleration)
     {
         float deltaTime = Time.time - lastNodTime;
-        const float nodTimeDelay = 0.4f;
+        const float nodTimeDelay = 0.2f;
 
         float magnitude = acceleration.magnitude;
-        const float nodThreshold = 1.1f;
+        const float nodThreshold = 1.05f;
+
+        debugText.text = "Mag = " + magnitude + "\nAcc = " + acceleration;
 
         // Nod gesture
         if (deltaTime > nodTimeDelay && magnitude > nodThreshold)
@@ -100,8 +103,11 @@ public class CardboardHeadController : MonoBehaviour
         // TODO(jaween): Detect head tilt gesture
 
         // Debug input
-        choreographer.InputAction(debugStoredAction);
-        debugStoredAction = BaseChoreographer.PlayerAction.NONE;
+        if (debugStoredAction != BaseChoreographer.PlayerAction.NONE)
+        {
+            choreographer.InputAction(debugStoredAction);
+            debugStoredAction = BaseChoreographer.PlayerAction.NONE;
+        }
     }
 
     private void DebugInput()

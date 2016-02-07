@@ -7,6 +7,7 @@ public class NightWalkCharacterController : MonoBehaviour
 
     private Animator animator;
     private bool isJumping = false;
+    private bool isSuperJumping = false;
     private bool isRolling = false;
     private float jumpStartTime;
     private float angle = 90 * Mathf.Deg2Rad;
@@ -24,7 +25,7 @@ public class NightWalkCharacterController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        const float degreesPerSecond = 25f;
+        const float degreesPerSecond = 18f;
         Vector3 newPosition = transform.position;
         angle -= degreesPerSecond * Mathf.Deg2Rad * Time.fixedDeltaTime;
         newPosition.x = Mathf.Cos(angle) * radius;
@@ -36,6 +37,10 @@ public class NightWalkCharacterController : MonoBehaviour
             const float timeInAirMultiplier = 327;
             ratioOfJump = Mathf.Sin(duration * timeInAirMultiplier * Mathf.Deg2Rad);
             float heightAboveGround = jumpHeight * ratioOfJump;
+            if (isSuperJumping)
+            {
+                heightAboveGround *= 2;
+            }
             newPosition.y = groundY + heightAboveGround;
 
             if (heightAboveGround < 0)
@@ -43,8 +48,13 @@ public class NightWalkCharacterController : MonoBehaviour
                 newPosition.y = groundY;
                 ratioOfJump = 0;
                 isJumping = false;
+                isSuperJumping = false;
                 animator.SetBool("IsJumping", isJumping);
             }
+        }
+        else if (isRolling)
+        {
+            newPosition.y = groundY;
         }
 
         transform.position = newPosition;
@@ -83,6 +93,7 @@ public class NightWalkCharacterController : MonoBehaviour
     {
         rollAngle = 0;
         isRolling = false;
+        isSuperJumping = true;
         Jump();
     }
 }
