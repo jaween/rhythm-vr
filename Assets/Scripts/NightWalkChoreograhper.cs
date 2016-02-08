@@ -76,7 +76,8 @@ public class NightWalkChoreograhper : BaseChoreographer
         switch (playerAction)
         {
             case PlayerAction.MOTION_NOD:
-                if (characterController.Jump())
+                bool superJump = false;
+                if (characterController.Jump(superJump))
                 {
                     playerMadeAnAttempt = true;
                 }
@@ -160,7 +161,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             float timing = timings.Timings[nextIndexToInstantiate];
             if (leadingTime >= timing)
             {
-                const float degreesPerSecond = 18f;
+                const float degreesPerSecond = 11.5f;
                 const float startAngleDegrees = 90f;
 
                 float angleOffsetDegrees = 

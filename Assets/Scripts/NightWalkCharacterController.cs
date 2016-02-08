@@ -26,7 +26,7 @@ public class NightWalkCharacterController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        const float degreesPerSecond = 18f;
+        const float degreesPerSecond = 11.5f;
         Vector3 newPosition = transform.position;
         angle -= degreesPerSecond * Mathf.Deg2Rad * Time.fixedDeltaTime;
         newPosition.x = Mathf.Cos(angle) * radius;
@@ -34,14 +34,25 @@ public class NightWalkCharacterController : MonoBehaviour
 
         if (isJumping)
         {
-            float duration = Time.time - jumpStartTime;
-            const float timeInAirMultiplier = 327;
-            ratioOfJump = Mathf.Sin(duration * timeInAirMultiplier * Mathf.Deg2Rad);
-            float heightAboveGround = jumpHeight * ratioOfJump;
+            // TODO(jaween): Find the actual super jump air time
+            float airTime = Time.time - jumpStartTime;
+            const float regularJumpAirTime = 0.55f;
+            const float superJumpAirTime = 0.7f;
+            const float degreesPerJump = 180.0f;
+
+            float superJumpMultiplier = 1;
             if (isSuperJumping)
             {
-                heightAboveGround *= 2;
+                ratioOfJump = airTime / superJumpAirTime;
+                superJumpMultiplier = 2;
             }
+            else
+            {
+                ratioOfJump = airTime / regularJumpAirTime;
+            }
+            
+            float jumpCurve = Mathf.Sin(ratioOfJump * degreesPerJump * Mathf.Deg2Rad);
+            float heightAboveGround = jumpHeight * superJumpMultiplier * jumpCurve;
             newPosition.y = groundY + heightAboveGround;
 
             if (heightAboveGround < 0)
@@ -69,20 +80,23 @@ public class NightWalkCharacterController : MonoBehaviour
         }
     }
 
-    // While the jump ratio is below this threshold the player can make
-    // the character jump again, this makes the controls feel nicer
+    // While the jump ratio is greater than these thresholds, the character can
+    // jump again or roll, this makes the controls feel nicer
     // TODO(jaween): Implement this properly not in this temp way
-    private const float jumpWhileJumpingThreshold = 0.3f;
+    private const float nextJumpThreshold = 0.8f;
+    private const float nextRollThreshold = 0.95f;
 
-    public bool Jump()
+
+    public bool Jump(bool superJump)
     {
         bool jumped = false;
-        if (!isJumping || ratioOfJump < jumpWhileJumpingThreshold)
+        if (!isRolling && !isJumping || ratioOfJump >= nextJumpThreshold)
         {
             jumpWithLeftArm = !jumpWithLeftArm;
             jumpStartTime = Time.time;
             isJumping = true;
             isRolling = false;
+            isSuperJumping = superJump;
             animator.SetTrigger("StartJumpTrigger");
             jumped = true;
         }
@@ -94,10 +108,11 @@ public class NightWalkCharacterController : MonoBehaviour
     public bool Roll()
     {
         bool rolled = false;
-        if (!isJumping || ratioOfJump < jumpWhileJumpingThreshold)
+        if (!isRolling && !isJumping || ratioOfJump >= nextRollThreshold)
         {
             isJumping = false;
             isRolling = true;
+            animator.SetTrigger("StartRollTrigger");
             rolled = true;
         }
         UpdateAnimations();
@@ -112,8 +127,8 @@ public class NightWalkCharacterController : MonoBehaviour
         {
             rollAngle = 0;
             isRolling = false;
-            isSuperJumping = true;
-            Jump();
+            bool superJump = true;
+            Jump(superJump);
             endRolled = true;
         }
         UpdateAnimations();

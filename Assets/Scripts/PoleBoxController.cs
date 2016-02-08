@@ -5,6 +5,7 @@ public class PoleBoxController : MonoBehaviour {
 
     public GameObject poleBox;
     public GameObject innerBox;
+    public GameObject platform;
     public GameObject positivePopup;
     public GameObject negativePopup;
     public ParticleSystem fireworks;
@@ -78,20 +79,6 @@ public class PoleBoxController : MonoBehaviour {
 
     public void DestroyPoleBox()
     {
-        /*GameObject platform;
-        if (longPlatform.activeInHierarchy)
-        {
-            platform = longPlatform;
-        }
-        else if (mediumPlatform.activeInHierarchy)
-        {
-            platform = mediumPlatform;
-        }
-        else
-        {
-            platform = shortPlatform;
-        }*/
-
         Destroy(gameObject);
     }
 
@@ -100,14 +87,15 @@ public class PoleBoxController : MonoBehaviour {
         switch (type)
         {
             case PlatformType.PLATFORM_LONG:
-                longPlatform.SetActive(true);
+                platform = longPlatform;
                 break;
             case PlatformType.PLATFORM_MEDIUM:
-                mediumPlatform.SetActive(true);
+                platform = mediumPlatform;
                 break;
             case PlatformType.PLATFORM_SHORT:
-                shortPlatform.SetActive(true);
+                platform = shortPlatform;
                 break;
         }
+        platform.SetActive(true);
     }
 }

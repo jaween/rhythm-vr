@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: fe203c266f1420b4caa7464252817c4b
-timeCreated: 1454904945
+timeCreated: 1454908415
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -75,7 +75,7 @@ TextureImporter:
   textureFormat: -1
   maxTextureSize: 2048
   textureSettings:
-    filterMode: 0
+    filterMode: 2
     aniso: 16
     mipBias: -1
     wrapMode: 1
@@ -715,10 +715,10 @@ TextureImporter:
     - name: cellanim.tpl 2_30
       rect:
         serializedVersion: 2
-        x: 881
-        y: 65
-        width: 70
-        height: 61
+        x: 882
+        y: 66
+        width: 68
+        height: 59
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -734,62 +734,61 @@ TextureImporter:
     - name: cellanim.tpl 2_31
       rect:
         serializedVersion: 2
-        x: 1
-        y: 33
-        width: 38
-        height: 37
+        x: 2
+        y: 34
+        width: 36
+        height: 35
       alignment: 9
       pivot: {x: 0.5034525, y: 0.51241046}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -10.131195, y: 10.040813}
-        - {x: -10.131195, y: -9.959187}
-        - {x: 9.868805, y: -9.959187}
-        - {x: 9.868805, y: 8.040813}
-        - {x: 7.868805, y: 10.040813}
+      - - {x: -10.124289, y: 10.065636}
+        - {x: -10.124289, y: -9.934364}
+        - {x: 9.875711, y: -9.934364}
+        - {x: 9.875711, y: 8.065636}
+        - {x: 7.8757114, y: 10.065636}
     - name: cellanim.tpl 2_32
       rect:
         serializedVersion: 2
-        x: 41
-        y: 33
-        width: 37
-        height: 37
+        x: 42
+        y: 34
+        width: 35
+        height: 35
       alignment: 9
       pivot: {x: 0.52088886, y: 0.3989957}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: 4.727112, y: 17.23716}
-        - {x: 1.7271118, y: 11.23716}
-        - {x: -4.272888, y: 17.23716}
-        - {x: -12.272888, y: 17.23716}
-        - {x: -12.272888, y: -9.76284}
-        - {x: 11.727112, y: -9.76284}
-        - {x: 11.727112, y: 17.23716}
+      - - {x: -12.23111, y: 17.035149}
+        - {x: -12.23111, y: -9.964851}
+        - {x: 11.76889, y: -9.964851}
+        - {x: 11.76889, y: 17.035149}
     - name: cellanim.tpl 2_33
       rect:
         serializedVersion: 2
-        x: 81
-        y: 33
-        width: 46
-        height: 37
+        x: 82
+        y: 34
+        width: 44
+        height: 35
       alignment: 9
       pivot: {x: 0.508401, y: 0.4245487}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -15.386444, y: 16.291698}
-        - {x: -15.386444, y: 2.2916985}
-        - {x: -12.386444, y: -9.708302}
-        - {x: -7.386444, y: -10.708302}
-        - {x: 9.613556, y: -10.708302}
-        - {x: 14.613556, y: 3.2916985}
-        - {x: 14.613556, y: 16.291698}
+      - - {x: -14.369644, y: 16.140797}
+        - {x: -15.369644, y: 13.140797}
+        - {x: -15.369644, y: 11.140797}
+        - {x: -14.369644, y: 8.140797}
+        - {x: -9.369644, y: -10.859203}
+        - {x: 7.630356, y: -10.859203}
+        - {x: 12.630356, y: -9.859203}
+        - {x: 14.630356, y: 2.1407967}
+        - {x: 14.630356, y: 16.140797}
     - name: cellanim.tpl 2_34
       rect:
         serializedVersion: 2
-        x: 1
-        y: 1
-        width: 30
-        height: 29
+        x: 2
+        y: 2
+        width: 28
+        height: 27
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -7727,10 +7726,10 @@ TextureImporter:
     - name: cellanim.tpl 2_35
       rect:
         serializedVersion: 2
-        x: 33
-        y: 2
-        width: 126
-        height: 28
+        x: 34
+        y: 3
+        width: 124
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -15064,10 +15063,10 @@ TextureImporter:
     - name: cellanim.tpl 2_36
       rect:
         serializedVersion: 2
-        x: 161
-        y: 2
-        width: 86
-        height: 28
+        x: 162
+        y: 3
+        width: 84
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -22808,10 +22807,10 @@ TextureImporter:
     - name: cellanim.tpl 2_37
       rect:
         serializedVersion: 2
-        x: 249
-        y: 2
-        width: 54
-        height: 28
+        x: 250
+        y: 3
+        width: 52
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -30985,10 +30984,10 @@ TextureImporter:
     - name: cellanim.tpl 2_39
       rect:
         serializedVersion: 2
-        x: 249
-        y: 33
-        width: 54
-        height: 37
+        x: 250
+        y: 34
+        width: 52
+        height: 35
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -31021,10 +31020,10 @@ TextureImporter:
     - name: cellanim.tpl 2_41
       rect:
         serializedVersion: 2
-        x: 129
-        y: 33
-        width: 30
-        height: 37
+        x: 130
+        y: 34
+        width: 28
+        height: 35
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -73679,9 +73678,9 @@ TextureImporter:
     - name: cellanim.tpl 2_45
       rect:
         serializedVersion: 2
-        x: 1
+        x: 7
         y: 73
-        width: 30
+        width: 18
         height: 117
       alignment: 0
       pivot: {x: 0.5, y: 0.5}

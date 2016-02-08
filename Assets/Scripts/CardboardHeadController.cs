@@ -11,10 +11,11 @@ public class CardboardHeadController : MonoBehaviour
     public bool trackRotation = true;
     public bool trackPosition = true;
 
-    private Quaternion previousRotation;
+    private Quaternion startRotation;
     private float lastNodTime;
+    private bool isDeepNodding = false;
     private bool updated;
-    private BaseChoreographer.PlayerAction debugStoredAction = 
+    private BaseChoreographer.PlayerAction debugStoredAction =
         BaseChoreographer.PlayerAction.NONE;
 
     public Ray Gaze
@@ -33,7 +34,9 @@ public class CardboardHeadController : MonoBehaviour
 
     private void Start()
     {
-        previousRotation = Cardboard.SDK.HeadPose.Orientation;
+        //startRotation = Quaternion.LookRotation(Gaze.direction);
+        startRotation = Quaternion.LookRotation(transform.forward);
+
         lastNodTime = Time.time;
     }
 
@@ -79,27 +82,46 @@ public class CardboardHeadController : MonoBehaviour
     private void FixedUpdate()
     {
         DetectAndDispatchHeadMotionInput(Input.acceleration);
-
-        previousRotation = transform.rotation;
     }
 
     private void DetectAndDispatchHeadMotionInput(Vector3 acceleration)
     {
-        float deltaTime = Time.time - lastNodTime;
-        const float nodTimeDelay = 0.2f;
-
         float magnitude = acceleration.magnitude;
+        const float nodTimeDelay = 0.2f;
         const float nodThreshold = 1.05f;
+        const float deepNodUpAngle = 10;
+        const float deepNodDownAngle = 20;
+        float deltaTime = Time.time - lastNodTime;
 
-        debugText.text = "Mag = " + magnitude + "\nAcc = " + acceleration;
+        // Angle between quaternions 
+        Quaternion gazeRotation = Quaternion.LookRotation(Gaze.direction);
+        float yawDegrees = Mathf.Atan2(Gaze.direction.x, Gaze.direction.z) * Mathf.Rad2Deg;
+        Quaternion rotateAroundAxis = Quaternion.AngleAxis(yawDegrees, Vector3.up);
+        Quaternion alignedStartRotation = rotateAroundAxis * startRotation;
+        float angle = Quaternion.Angle(gazeRotation, alignedStartRotation);
 
-        // Nod gesture
-        if (deltaTime > nodTimeDelay && magnitude > nodThreshold)
+        //float signedAngle = SignedAngle(gazeRotation, startRotation);
+        debugText.text = "Angle is " + angle;
+        
+        if (isDeepNodding && angle <= deepNodUpAngle)
         {
+            // Deep nod up
+            isDeepNodding = false;
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP);
+        }
+        else if (angle >= deepNodDownAngle)
+        {
+            // Deep nod down
+            isDeepNodding = true;
+            choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_DOWN);
+        }
+        else if (deltaTime > nodTimeDelay && magnitude > nodThreshold && !isDeepNodding)
+        {
+            // Nod gesture
             lastNodTime = Time.time;
             choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_NOD);
         }
-        // TODO(jaween): Detect deep nod gestures
+
         // TODO(jaween): Detect head tilt gesture
 
         // Debug input
@@ -125,5 +147,16 @@ public class CardboardHeadController : MonoBehaviour
         {
             debugStoredAction = BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP;
         }
+    }
+
+    private float SignedAngle(Quaternion a, Quaternion b)
+    {
+        var forwardA = a * Vector3.forward;
+        var forwardB = b * Vector3.forward;
+
+        var angleA = Mathf.Atan2(forwardA.y, forwardA.z) * Mathf.Rad2Deg;
+        var angleB = Mathf.Atan2(forwardB.y, forwardB.z) * Mathf.Rad2Deg;
+
+        return Mathf.DeltaAngle(angleA, angleB);
     }
 }
