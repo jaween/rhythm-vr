@@ -9,12 +9,11 @@ public abstract class BaseChoreographer : MonoBehaviour
     public AudioSource musicAudioSource;
     public AudioSource soundEffectsAudioSource;
     public AudioClip music;
-    public AudioClip positiveSoundEffect;
-    public AudioClip negativeSoundEffect;
     public bool showDebugTimingResults = true;
 
     protected TimingsManager timings;
-    protected PlayerAction playerAction = PlayerAction.NONE;
+    private PlayerAction storedPlayerAction = PlayerAction.NONE;
+    private bool timingsHandled = false;
     
     public enum PlayerAction
     {
@@ -37,13 +36,23 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     private void FixedUpdate()
     {
-        HandleTimings();
+        timingsHandled = false;
+        HandleInput(storedPlayerAction);
+        storedPlayerAction = PlayerAction.NONE;
+
         GameUpdate();
-        playerAction = PlayerAction.NONE;
+        HandleTimings(PlayerAction.NONE);
     }
 
-    private void HandleTimings()
+    protected void HandleTimings(PlayerAction playerAction)
     {
+        // Only handles timings once per FixedUpdate
+        if (timingsHandled)
+        {
+            return;
+        }
+        timingsHandled = true;
+
         TimingsManager.TimingResult result;
         bool debugWorthShowing = true;
         if (playerAction != PlayerAction.NONE)
@@ -71,6 +80,8 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     protected abstract void Initialise();
 
+    protected abstract void HandleInput(PlayerAction playerAction);
+
     protected abstract void GameUpdate();
 
     protected abstract void PlayerTimingResult(
@@ -78,6 +89,6 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     public void InputAction(PlayerAction playerAction)
     {
-        this.playerAction = playerAction;
+        storedPlayerAction = playerAction;
     }
 }

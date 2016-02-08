@@ -9,6 +9,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private bool isJumping = false;
     private bool isSuperJumping = false;
     private bool isRolling = false;
+    private bool jumpWithLeftArm = false;
     private float jumpStartTime;
     private float angle = 90 * Mathf.Deg2Rad;
     private float rollAngle = 0;
@@ -54,7 +55,8 @@ public class NightWalkCharacterController : MonoBehaviour
         }
         else if (isRolling)
         {
-            newPosition.y = groundY;
+            const float rollingHeightAboveGround = 0.2f;
+            newPosition.y = groundY - rollingHeightAboveGround;
         }
 
         transform.position = newPosition;
@@ -67,33 +69,62 @@ public class NightWalkCharacterController : MonoBehaviour
         }
     }
 
-    public void Jump()
-    {
-        // While the jump ratio is below this threshold the player can make
-        // the character jump again, this makes the controls feel nicer
-        const float jumpWhileJumpingThreshold = 0.4f;
+    // While the jump ratio is below this threshold the player can make
+    // the character jump again, this makes the controls feel nicer
+    // TODO(jaween): Implement this properly not in this temp way
+    private const float jumpWhileJumpingThreshold = 0.3f;
 
+    public bool Jump()
+    {
+        bool jumped = false;
         if (!isJumping || ratioOfJump < jumpWhileJumpingThreshold)
         {
+            jumpWithLeftArm = !jumpWithLeftArm;
             jumpStartTime = Time.time;
             isJumping = true;
             isRolling = false;
-            animator.SetBool("IsJumping", isJumping);
+            animator.SetTrigger("StartJumpTrigger");
+            jumped = true;
         }
+
+        UpdateAnimations();
+        return jumped;
     }
 
-    public void Roll()
+    public bool Roll()
     {
-        isJumping = false;
-        isRolling = true;
+        bool rolled = false;
+        if (!isJumping || ratioOfJump < jumpWhileJumpingThreshold)
+        {
+            isJumping = false;
+            isRolling = true;
+            rolled = true;
+        }
+        UpdateAnimations();
+
+        return rolled;
+    }
+
+    public bool EndRoll()
+    {
+        bool endRolled = false;
+        if (isRolling)
+        {
+            rollAngle = 0;
+            isRolling = false;
+            isSuperJumping = true;
+            Jump();
+            endRolled = true;
+        }
+        UpdateAnimations();
+
+        return endRolled;
+    }
+
+    private void UpdateAnimations()
+    {
+        animator.SetBool("IsJumping", isJumping);
         animator.SetBool("IsRolling", isRolling);
-    }
-
-    public void EndRoll()
-    {
-        rollAngle = 0;
-        isRolling = false;
-        isSuperJumping = true;
-        Jump();
+        animator.SetBool("LeftArm", jumpWithLeftArm);
     }
 }

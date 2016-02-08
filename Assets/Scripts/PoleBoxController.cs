@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PoleBoxController : MonoBehaviour {
 
+    public GameObject poleBox;
+    public GameObject innerBox;
     public GameObject positivePopup;
     public GameObject negativePopup;
     public ParticleSystem fireworks;
@@ -32,19 +34,24 @@ public class PoleBoxController : MonoBehaviour {
             popup = negativePopup;
         }
 
+        // Animations
+        popped = true;
         popTime = Time.time;
         popup.SetActive(true);
+        Animator animator = GetComponentInChildren<Animator>();
+        animator.SetBool("IsOpen", popped);
+
+        // Fireworks
+        innerBox.SetActive(false);
         fireworks.Play();
-        popped = true;
     }
 
     public void FixedUpdate()
     {
         if (popped)
         {
-
             // Popup movement
-            float popupMultiplier = 10.0f;
+            float popupMultiplier = 13.0f;
             float popupInterpolant = Time.fixedDeltaTime * popupMultiplier;
             Vector3 fromPosition = popup.transform.position;
             Vector3 toPosition = transform.position + Vector3.up * 2.5f;
@@ -60,17 +67,31 @@ public class PoleBoxController : MonoBehaviour {
                 enabled = false;
                 fireworks.Stop();
             }
+
             Renderer renderer = popup.GetComponentInChildren<SpriteRenderer>();
             Color color = renderer.material.color;
             float alpha = Mathf.Lerp(color.a, 1.0f, popupInterpolant);
             color = new Color(color.r, color.g, color.b, fadingInterpolant);
             renderer.material.color = color;
-
         }
     }
 
     public void DestroyPoleBox()
     {
+        /*GameObject platform;
+        if (longPlatform.activeInHierarchy)
+        {
+            platform = longPlatform;
+        }
+        else if (mediumPlatform.activeInHierarchy)
+        {
+            platform = mediumPlatform;
+        }
+        else
+        {
+            platform = shortPlatform;
+        }*/
+
         Destroy(gameObject);
     }
 

@@ -9,6 +9,9 @@ public class NightWalkChoreograhper : BaseChoreographer
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public Slider slider;
+    public AudioClip regularBeatA;
+    public AudioClip regularBeatB;
+    public AudioClip doubleBeat;
     public float jumpHeight = 1;
     public float groundY;
 
@@ -17,8 +20,11 @@ public class NightWalkChoreograhper : BaseChoreographer
     private int nextIndexToInstantiate = 0;
     private int nextIndexToDestroy = 0;
     private float characterRadius;
+    private bool audioIsOnUpBeat = false;
     private float debugMusicStartOffset;
     private PoleBoxController previousPoleBox = null;
+    private const float longBeatThreshold = 0.6f;
+    private const float shortBeatThreshold = 0.4f;
 
     protected override void Initialise()
     {
@@ -53,7 +59,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         this.timings = tempTimings;
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = timings.Timings[timings.CurrentTimingIndex] - 3.0f;
+        debugMusicStartOffset = timings.Timings[timings.CurrentTimingIndex] - 3f;
         musicAudioSource.time = debugMusicStartOffset;
 
         groundY = characterController.transform.position.y - 0.5f;
@@ -64,10 +70,45 @@ public class NightWalkChoreograhper : BaseChoreographer
         slider.minValue = 0;
     }
 
+    protected override void HandleInput(PlayerAction playerAction)
+    {
+        bool playerMadeAnAttempt = false;
+        switch (playerAction)
+        {
+            case PlayerAction.MOTION_NOD:
+                if (characterController.Jump())
+                {
+                    playerMadeAnAttempt = true;
+                }
+                break;
+            case PlayerAction.MOTION_DEEP_NOD_DOWN:
+                if (characterController.Roll())
+                {
+                    playerMadeAnAttempt = true;
+                }
+                break;
+            case PlayerAction.MOTION_DEEP_NOD_UP:
+                if (characterController.EndRoll())
+                {
+                    playerMadeAnAttempt = true;
+                }
+                break;
+            case PlayerAction.MOTION_HEAD_TILT:
+            case PlayerAction.NONE:
+                break;
+            default:
+                break;
+        }
+
+        if (playerMadeAnAttempt)
+        {
+            HandleTimings(playerAction);
+        }
+    }
+
     protected override void GameUpdate()
     {
         CreateAndDestroyPoles();
-        HandleInput();
 
         // Update debug UI
         slider.value = musicAudioSource.time;
@@ -87,14 +128,16 @@ public class NightWalkChoreograhper : BaseChoreographer
 
         if (result == TimingsManager.TimingResult.GOOD)
         {
-            TempPlaySound(positiveSoundEffect);
-            poleBox.Pop(true);
+            bool positive = true;
+            TempPlaySound(positive);
+            poleBox.Pop(positive);
         }
         else if (result == TimingsManager.TimingResult.BAD ||
                  result == TimingsManager.TimingResult.MISS)
         {
-            TempPlaySound(negativeSoundEffect);
-            poleBox.Pop(false);
+            bool positive = false;
+            TempPlaySound(positive);
+            poleBox.Pop(positive);
         }
     }
 
@@ -108,8 +151,6 @@ public class NightWalkChoreograhper : BaseChoreographer
         if (nextIndexToInstantiate < timings.Timings.Count)
         {
             float previousTiming = timings.Timings[nextIndexToInstantiate];
-            const float longThreshold = 0.6f;
-            const float shortThreshold = 0.4f;
 
             if (nextIndexToInstantiate > 0)
             {
@@ -135,11 +176,11 @@ public class NightWalkChoreograhper : BaseChoreographer
                 PoleBoxController poleBox = (PoleBoxController) Instantiate(
                     poleBoxPrefab, position, rotation);
                 float timeDelta = timing - previousTiming;
-                if (timeDelta < shortThreshold && previousPoleBox != null)
+                if (timeDelta < shortBeatThreshold && previousPoleBox != null)
                 {
                     previousPoleBox.ShowPlatform(PoleBoxController.PlatformType.PLATFORM_SHORT);
                 }
-                else if (timeDelta > longThreshold && previousPoleBox != null)
+                else if (timeDelta > longBeatThreshold && previousPoleBox != null)
                 {
                     previousPoleBox.ShowPlatform(PoleBoxController.PlatformType.PLATFORM_LONG);
                 }
@@ -167,31 +208,21 @@ public class NightWalkChoreograhper : BaseChoreographer
             }
         }
     }
-
-    private void HandleInput()
+    
+    private void TempPlaySound(bool positive)
     {
-        switch (playerAction)
+        AudioClip clip;
+        if (positive)
         {
-            case PlayerAction.MOTION_NOD:
-                characterController.Jump();
-                break;
-            case PlayerAction.MOTION_DEEP_NOD_DOWN:
-                characterController.Roll();
-                break;
-            case PlayerAction.MOTION_DEEP_NOD_UP:
-                characterController.EndRoll();
-                break;
-            case PlayerAction.MOTION_HEAD_TILT:
-            case PlayerAction.NONE:
-                break;
-            default:
-                break;
+            clip = audioIsOnUpBeat == true ? regularBeatA: regularBeatB;
+            audioIsOnUpBeat = !audioIsOnUpBeat;
+            soundEffectsAudioSource.clip = clip;
+        } else {
+            clip = null;
+            audioIsOnUpBeat = false;
         }
-    }
-
-    private void TempPlaySound(AudioClip clip)
-    {
         soundEffectsAudioSource.clip = clip;
         soundEffectsAudioSource.Play();
+
     }
 }
