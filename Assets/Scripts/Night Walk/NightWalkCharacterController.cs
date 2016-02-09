@@ -36,7 +36,7 @@ public class NightWalkCharacterController : MonoBehaviour
         {
             // TODO(jaween): Find the actual super jump air time
             float airTime = Time.time - jumpStartTime;
-            const float regularJumpAirTime = 0.55f;
+            const float regularJumpAirTime = 0.5f;
             const float superJumpAirTime = 0.7f;
             const float degreesPerJump = 180.0f;
 

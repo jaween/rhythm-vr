@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: d35f3ae46f34ee740a6ac5cd8c5fa705
+timeCreated: 1455002701
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - musicAudioSource: {instanceID: 0}
+  - soundEffectsAudioSource: {instanceID: 0}
+  - music: {instanceID: 0}
+  - poleBoxPrefab: {instanceID: 0}
+  - characterController: {instanceID: 0}
+  - timingsTextAsset: {fileID: 4900000, guid: e290211483d116e4da6d0057dbab2c1a, type: 3}
+  - slider: {instanceID: 0}
+  - regularBeatA: {instanceID: 0}
+  - regularBeatB: {instanceID: 0}
+  - doubleBeat: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

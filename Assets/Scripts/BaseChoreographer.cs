@@ -9,9 +9,10 @@ public abstract class BaseChoreographer : MonoBehaviour
     public AudioSource musicAudioSource;
     public AudioSource soundEffectsAudioSource;
     public AudioClip music;
+    public TextAsset timingsTextAsset;
     public bool showDebugTimingResults = true;
 
-    protected TimingsManager timings;
+    protected TimingsManager timingsManager;
     private PlayerAction storedPlayerAction = PlayerAction.NONE;
     private bool timingsHandled = false;
     
@@ -41,10 +42,18 @@ public abstract class BaseChoreographer : MonoBehaviour
         storedPlayerAction = PlayerAction.NONE;
 
         GameUpdate();
-        HandleTimings(PlayerAction.NONE);
+        HandlePlayerTimings(PlayerAction.NONE);
+        BaseHandleTriggers();
+    }
+    
+    private void BaseHandleTriggers()
+    {
+        List<string> triggers = timingsManager.checkForTrigger(musicAudioSource.time);
+        HandleTriggers(triggers);
     }
 
-    protected void HandleTimings(PlayerAction playerAction)
+    /** Checks whether the player was on beat or not **/
+    protected void HandlePlayerTimings(PlayerAction playerAction)
     {
         // Only handles timings once per FixedUpdate
         if (timingsHandled)
@@ -57,12 +66,12 @@ public abstract class BaseChoreographer : MonoBehaviour
         bool debugWorthShowing = true;
         if (playerAction != PlayerAction.NONE)
         {
-            result = timings.checkAttempt(musicAudioSource.time);
+            result = timingsManager.checkAttempt(musicAudioSource.time);
         }
         else
         {
             // User didn't make an attempt and had missed the timing window
-            result = timings.checkForMiss(musicAudioSource.time);
+            result = timingsManager.checkForMiss(musicAudioSource.time);
 
             if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
             {
@@ -83,6 +92,8 @@ public abstract class BaseChoreographer : MonoBehaviour
     protected abstract void HandleInput(PlayerAction playerAction);
 
     protected abstract void GameUpdate();
+
+    protected abstract void HandleTriggers(List<string> triggers);
 
     protected abstract void PlayerTimingResult(
         TimingsManager.TimingResult result);

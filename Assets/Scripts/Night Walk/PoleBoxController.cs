@@ -82,7 +82,7 @@ public class PoleBoxController : MonoBehaviour {
         Destroy(gameObject);
     }
 
-    public void ShowPlatform(PlatformType type)
+    public void SetPlatform(PlatformType type)
     {
         switch (type)
         {
