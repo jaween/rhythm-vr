@@ -63,15 +63,16 @@ public abstract class BaseChoreographer : MonoBehaviour
         timingsHandled = true;
 
         TimingsManager.TimingResult result;
+        List<string> triggers;
         bool debugWorthShowing = true;
         if (playerAction != PlayerAction.NONE)
         {
-            result = timingsManager.checkAttempt(musicAudioSource.time);
+            result = timingsManager.checkAttempt(musicAudioSource.time, out triggers);
         }
         else
         {
             // User didn't make an attempt and had missed the timing window
-            result = timingsManager.checkForMiss(musicAudioSource.time);
+            result = timingsManager.checkForMiss(musicAudioSource.time, out triggers);
 
             if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
             {
@@ -84,7 +85,7 @@ public abstract class BaseChoreographer : MonoBehaviour
             Debug.Log("BaseChoreographer " + Time.time + ": " + result.ToString());
         }
 
-        PlayerTimingResult(result);
+        PlayerTimingResult(result, triggers);
     }
 
     protected abstract void Initialise();
@@ -96,7 +97,7 @@ public abstract class BaseChoreographer : MonoBehaviour
     protected abstract void HandleTriggers(List<string> triggers);
 
     protected abstract void PlayerTimingResult(
-        TimingsManager.TimingResult result);
+        TimingsManager.TimingResult result, List<string> triggers);
 
     public void InputAction(PlayerAction playerAction)
     {

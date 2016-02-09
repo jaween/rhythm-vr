@@ -25,7 +25,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     private float debugMusicStartOffset;
     private const float longBeatThreshold = 0.65f;
     private const float shortBeatThreshold = 0.3f;
-    private readonly string[] events = new string[] { "pop", "roll_audio", "start_roll", "end_roll", "result" };
+    private readonly string[] events = new string[] { "pop", "roll_audio", "start_roll", "end_roll", "no_platform", "raise", "result" };
 
     protected override void Initialise()
     {
@@ -90,7 +90,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     }
 
     protected override void PlayerTimingResult(
-        TimingsManager.TimingResult result)
+        TimingsManager.TimingResult result, List<string> triggers)
     {
         if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
         {
@@ -104,31 +104,28 @@ public class NightWalkChoreograhper : BaseChoreographer
         {
             return;
         }
-
         PoleBoxController poleBox = poleBoxes[timing];
 
-        if (result == TimingsManager.TimingResult.GOOD)
-        {
-            bool positive = true;
-            TempPlaySound(positive);
-            poleBox.Pop(positive);
-        }
-        else if (result == TimingsManager.TimingResult.BAD ||
-                 result == TimingsManager.TimingResult.MISS)
-        {
-            bool positive = false;
-            TempPlaySound(positive);
-            poleBox.Pop(positive);
+        switch (result) {
+            case TimingsManager.TimingResult.GOOD:
+                bool positive = true;
+                TempPlaySound(positive);
+                poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
+                break;
+            case TimingsManager.TimingResult.BAD:
+            case TimingsManager.TimingResult.MISS:
+                positive = false;
+                TempPlaySound(positive);
+                poleBox.Pop(PoleBoxController.PopType.POP_NEGATIVE);
+                break;
+            default:
+                Debug.Log("Unknown TimingResult");
+                break;
         }
     }
 
     protected override void HandleTriggers(List<string> triggers)
     {
-        if (triggers == null)
-        {
-            return;
-        }
-
         foreach (var trigger in triggers)
         {
             // TODO(jaween): Replace with enums or class of const ints
@@ -144,6 +141,12 @@ public class NightWalkChoreograhper : BaseChoreographer
                     break;
                 case 3:
                     // No implementation
+                    break;
+                case 4:
+                    Debug.Log("Gap");
+                    break;
+                case 5:
+                    Debug.Log("Raise");
                     break;
                 default:
                     Debug.Log("Unknown trigger " + trigger);
@@ -162,7 +165,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         if (nextIndexToInstantiate < timingsManager.Timings.Count)
         {
             TimingsManager.Timing timing = timingsManager.Timings[nextIndexToInstantiate];
-            if (timing.triggers != null && timing.triggers.Contains(events[0]))
+            if (timing.triggers.Contains(events[0]))
             {
                 nextIndexToInstantiate++;
                 return;
@@ -185,11 +188,17 @@ public class NightWalkChoreograhper : BaseChoreographer
                 Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
                 PoleBoxController poleBox = (PoleBoxController) Instantiate(
                     poleBoxPrefab, position, rotation);
-                if (timing.triggers != null && timing.triggers.Contains(events[2]))
+
+                // Platform
+                if (timing.triggers.Contains(events[4]))
+                {
+                    poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_NONE);
+                }
+                else if (timing.triggers.Contains(events[2]))
                 {
                     poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_SHORT);
                 }
-                else if (timing.triggers != null && timing.triggers.Contains(events[3]))
+                else if (timing.triggers.Contains(events[3]))
                 {
                     poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_LONG);
                 }

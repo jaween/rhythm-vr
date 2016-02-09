@@ -21,17 +21,17 @@ public static class TimingsParser {
             var tokens = line.Split(tokenDelimeters);
             if (tokens.Length > 1)
             {
-                // Skips blank tokens
-                if (tokens[1] == "")
-                {
-                    continue;
-                }
-
                 if (possibleEvents.Contains(tokens[1]))
-                {
-                    // TODO(jaween): Get all events from line
+                { 
                     var events = new List<string>();
-                    events.Add(tokens[1]);
+                    for (var i = 1; i < tokens.Length; i++)
+                    {
+                        // Adds non-blank tokens
+                        if (tokens[i] != "")
+                        {
+                            events.Add(tokens[i]);
+                        }
+                    }
                     AddTimingFromString(tokens[0], events);
                 }
                 else
@@ -41,13 +41,14 @@ public static class TimingsParser {
             }
             else
             {
-                AddTimingFromString(tokens[0], null);
+                AddTimingFromString(tokens[0], new List<string>());
             }
         }
 
         return timings;
     }
 
+    // TODO(jaween): Find and replace occurances of "events" with "triggers" or something
     private static void AddTimingFromString(string timingString, List<string> events)
     {
         float timingFloat;

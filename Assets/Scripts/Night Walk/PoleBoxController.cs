@@ -5,7 +5,6 @@ public class PoleBoxController : MonoBehaviour {
 
     public GameObject poleBox;
     public GameObject innerBox;
-    public GameObject platform;
     public GameObject positivePopup;
     public GameObject negativePopup;
     public ParticleSystem fireworks;
@@ -14,23 +13,32 @@ public class PoleBoxController : MonoBehaviour {
     public GameObject shortPlatform;
 
     private GameObject popup;
+    private GameObject platform = null;
     private bool popped = false;
     private float popTime;
 
     public enum PlatformType
     {
+        PLATFORM_NONE,
         PLATFORM_LONG,
         PLATFORM_MEDIUM,
         PLATFORM_SHORT
     }
 
-    public void Pop(bool positive)
+    public enum PopType
     {
-        if (positive)
+        POP_POSITIVE,
+        POP_NEGATIVE,
+        POP_EMPTY
+    }
+
+    public void Pop(PopType popType)
+    {
+        if (popType == PopType.POP_POSITIVE)
         {
             popup = positivePopup;
         }
-        else
+        else if (popType == PopType.POP_NEGATIVE)
         {
             popup = negativePopup;
         }
@@ -38,7 +46,10 @@ public class PoleBoxController : MonoBehaviour {
         // Animations
         popped = true;
         popTime = Time.time;
-        popup.SetActive(true);
+        if (popType != PopType.POP_EMPTY)
+        {
+            popup.SetActive(true);
+        }
         Animator animator = GetComponentInChildren<Animator>();
         animator.SetBool("IsOpen", popped);
 
@@ -86,6 +97,9 @@ public class PoleBoxController : MonoBehaviour {
     {
         switch (type)
         {
+            case PlatformType.PLATFORM_NONE:
+                platform = null;
+                break;
             case PlatformType.PLATFORM_LONG:
                 platform = longPlatform;
                 break;
@@ -96,6 +110,10 @@ public class PoleBoxController : MonoBehaviour {
                 platform = shortPlatform;
                 break;
         }
-        platform.SetActive(true);
+
+        if (platform != null)
+        {
+            platform.SetActive(true);
+        }
     }
 }

@@ -49,11 +49,11 @@ public class TimingsManager
         }
     }
 
-    public TimingResult checkForMiss(float ellapsedTime)
+    public TimingResult checkForMiss(float ellapsedTime, out List<string> triggers)
     {
-        // TODO(jaween): Also emit a list of triggers!!! This will solve the 
-        // problem of falling off platforms
-        float nextPlayerTiming = timings[nextPlayerTimingIndex].time;
+        Timing timing = timings[nextPlayerTimingIndex];
+        float nextPlayerTiming = timing.time;
+        triggers = timing.triggers;
         if (!finished && ellapsedTime > nextPlayerTiming + leeway + leewayMiss)
         {
             moveToNextPlayerTiming();
@@ -62,11 +62,11 @@ public class TimingsManager
         return TimingResult.IGNORE_ATTEMPT;
     }
 
-    public TimingResult checkAttempt(float ellapsedTime)
+    public TimingResult checkAttempt(float ellapsedTime, out List<string> triggers)
     {
-        // TODO(jaween): Also emit a list of triggers!!! This will solve the 
-        // problem of variable height platforms
-        float nextPlayerTiming = timings[nextPlayerTimingIndex].time;
+        Timing timing = timings[nextPlayerTimingIndex];
+        float nextPlayerTiming = timing.time;
+        triggers = timing.triggers;
         if (finished)
         {
             return TimingResult.IGNORE_ATTEMPT;
@@ -91,7 +91,7 @@ public class TimingsManager
 
     public List<string> checkForTrigger(float ellapsedTime)
     {
-        List<string> triggers = null;
+        List<string> triggers = new List<string>();
         Timing nextTriggerTiming = timings[nextTriggerTimingIndex];
         if (!finished && ellapsedTime > nextTriggerTiming.time)
         {
