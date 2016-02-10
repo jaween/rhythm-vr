@@ -17,8 +17,6 @@ public class PoleBoxController : MonoBehaviour {
     
     private GameObject popup;
     private GameObject platform = null;
-    private bool popped = false;
-    private float popTime;
 
     public enum PlatformType
     {
@@ -49,25 +47,25 @@ public class PoleBoxController : MonoBehaviour {
         }
 
         // Animations
-        popped = true;
-        popTime = Time.time;
         if (popType != PopType.POP_EMPTY)
         {
             popup.SetActive(true);
         }
         Animator animator = GetComponentInChildren<Animator>();
-        animator.SetBool("IsOpen", popped);
+        animator.SetBool("IsOpen", true);
 
         innerBox.SetActive(false);
+        StartCoroutine(PopCoroutine());
     }
 
-    public void FixedUpdate()
+    public IEnumerator PopCoroutine()
     {
-        if (popped)
-        {
+        float startTime = Time.time;
+        while (true)
+        { 
             // Popup movement
             float popupMultiplier = 13.0f;
-            float popupInterpolant = Time.fixedDeltaTime * popupMultiplier;
+            float popupInterpolant = Time.deltaTime * popupMultiplier;
             Vector3 fromPosition = popup.transform.position;
             Vector3 toPosition = fireworksController.transform.position;
             popup.transform.position = Vector3.Lerp(
@@ -75,7 +73,7 @@ public class PoleBoxController : MonoBehaviour {
 
             // Popup fading
             float fadingMultiplier = 3.0f;
-            float timeDelta = Time.time - popTime;
+            float timeDelta = Time.time - startTime;
             float fadingInterpolant = Mathf.Sin(timeDelta * fadingMultiplier);
             if (fadingInterpolant < 0)
             {
@@ -86,6 +84,12 @@ public class PoleBoxController : MonoBehaviour {
             Color color = renderer.material.color;
             color = new Color(color.r, color.g, color.b, fadingInterpolant);
             renderer.material.color = color;
+
+            if (timeDelta >= 1.0f)
+            {
+                break;
+            }
+            yield return new WaitForEndOfFrame();
         }
     }
 
@@ -131,9 +135,12 @@ public class PoleBoxController : MonoBehaviour {
 
     public void DestroyPoleBox()
     {
-        Destroy(gameObject);
+        StartCoroutine(AlphaCoroutine(poleBox, 1.0f, 0.0f, 1.0f, 0.0f));
+        StartCoroutine(AlphaCoroutine(platform, 1.0f, 0.0f, 1.0f, 0.5f));
+        StartCoroutine(DestroyCoroutine());
     }
 
+    // TODO(jaween): Clean up this repeated code
     private IEnumerator LowerCoroutine(float amount)
     {
         Vector3 fromPosition = transform.position;
@@ -193,5 +200,35 @@ public class PoleBoxController : MonoBehaviour {
             yield return new WaitForEndOfFrame();
         }
         gameObject.SetActive(false);
+    }
+
+    private IEnumerator AlphaCoroutine(GameObject gameObject, float from, 
+        float to, float multiplier, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        float startTime = Time.time;
+        float interpolant = 0;
+        while (true)
+        {
+            var renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
+            foreach (var renderer in renderers)
+            {
+                Color color = renderer.material.color;
+                color.a = Mathf.Lerp(from, to, interpolant);
+                renderer.material.color = color;
+            }
+            if (interpolant >= 1.0f)
+            {
+                break;
+            }
+            interpolant = (Time.time - startTime) * multiplier;
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private IEnumerator DestroyCoroutine()
+    {
+        yield return new WaitForSeconds(4.0f);
+        Destroy(gameObject);
     }
 }

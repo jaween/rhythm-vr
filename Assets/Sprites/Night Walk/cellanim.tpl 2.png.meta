@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: fe203c266f1420b4caa7464252817c4b
-timeCreated: 1455091694
+timeCreated: 1455110506
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -56,6 +56,7 @@ TextureImporter:
     21300098: cellanim.tpl 2_49
     21300100: cellanim.tpl 2_50
     21300102: cellanim.tpl 2_51
+    21300104: cellanim.tpl 2_52
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -85818,6 +85819,24 @@ TextureImporter:
         - {x: 11, y: -9.5}
         - {x: 11, y: 2.5}
         - {x: 9, y: 11.5}
+    - name: cellanim.tpl 2_52
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 834
+        width: 76
+        height: 99
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -12, y: 42.5}
+        - {x: -28, y: 17.5}
+        - {x: -28, y: -32.5}
+        - {x: -20, y: -41.5}
+        - {x: 8, y: -41.5}
+        - {x: 28, y: -28.5}
+        - {x: 28, y: 42.5}
     outline: []
   spritePackingTag: 
   userData: 

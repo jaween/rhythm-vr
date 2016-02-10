@@ -163,7 +163,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             // TODO(jaween): Replace with enums or class of const ints
             switch (Array.IndexOf(events, trigger)) {
                 case 0:
-                    Debug.Log("Pop!");
+                    // TODO(jaween): Implement
                     break;
                 case 1:
                     tempAudioSourceB.Play();

@@ -149,6 +149,8 @@ public class NightWalkCharacterController : MonoBehaviour
 
     public void Fall()
     {
+        isRolling = false;
+        isRunning = false;
         StartCoroutine(FallCoroutine());
     }
 
@@ -174,7 +176,6 @@ public class NightWalkCharacterController : MonoBehaviour
         yield return new WaitForSeconds(Time.deltaTime);
         jumpMask.SetActive(false);
     }
-        
 
     private void UpdateAnimations()
     {

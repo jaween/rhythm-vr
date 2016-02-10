@@ -44,11 +44,14 @@ public class FireworksController : MonoBehaviour {
             }
         }
         rollFireworks = roll;
+
+        StartCoroutine(UpdateFireworksCoroutine());
     }
 
-	void FixedUpdate() 
+	private IEnumerator UpdateFireworksCoroutine() 
     {
-        if (createdFireworks)
+        float startTime = Time.time;
+        while (true)
         {
             float multiplier = 9.0f;
             const float angleDelta = 360.0f / fireworksPerLayer * Mathf.Deg2Rad;
@@ -92,6 +95,14 @@ public class FireworksController : MonoBehaviour {
                     renderer.material.color = color;
                 }
             }
+
+            if (Time.time - startTime >= 1.0f)
+            {
+                break;
+            }
+            yield return new WaitForEndOfFrame();
         }
+
+        Destroy(this);
 	}
 }
