@@ -6,9 +6,11 @@ public class NightWalkCharacterController : MonoBehaviour
     public float jumpHeight = 1;
 
     private Animator animator;
+    private bool isRunning = true;
     private bool isJumping = false;
     private bool isSuperJumping = false;
     private bool isRolling = false;
+    private bool isGrabbing = false;
     private bool jumpWithLeftArm = false;
     private float jumpStartTime;
     private float angle = 90 * Mathf.Deg2Rad;
@@ -24,17 +26,24 @@ public class NightWalkCharacterController : MonoBehaviour
         radius = transform.position.z;
     }
 
+    private void Update()
+    {
+        UpdateAnimations();
+    }
+
     private void FixedUpdate()
     {
         const float degreesPerSecond = 11.5f;
         Vector3 newPosition = transform.position;
-        angle -= degreesPerSecond * Mathf.Deg2Rad * Time.fixedDeltaTime;
-        newPosition.x = Mathf.Cos(angle) * radius;
-        newPosition.z = Mathf.Sin(angle) * radius;
+        if (isRunning)
+        {
+            angle -= degreesPerSecond * Mathf.Deg2Rad * Time.fixedDeltaTime;
+            newPosition.x = Mathf.Cos(angle) * radius;
+            newPosition.z = Mathf.Sin(angle) * radius;
+        }
 
         if (isJumping)
         {
-            // TODO(jaween): Find the actual super jump air time
             float airTime = Time.time - jumpStartTime;
             const float regularJumpAirTime = 0.5f;
             const float superJumpAirTime = 0.7f;
@@ -86,7 +95,6 @@ public class NightWalkCharacterController : MonoBehaviour
     private const float nextJumpThreshold = 0.8f;
     private const float nextRollThreshold = 0.95f;
 
-
     public bool Jump(bool superJump)
     {
         bool jumped = false;
@@ -101,7 +109,6 @@ public class NightWalkCharacterController : MonoBehaviour
             jumped = true;
         }
 
-        UpdateAnimations();
         return jumped;
     }
 
@@ -115,7 +122,6 @@ public class NightWalkCharacterController : MonoBehaviour
             animator.SetTrigger("StartRollTrigger");
             rolled = true;
         }
-        UpdateAnimations();
 
         return rolled;
     }
@@ -131,15 +137,38 @@ public class NightWalkCharacterController : MonoBehaviour
             Jump(superJump);
             endRolled = true;
         }
-        UpdateAnimations();
 
         return endRolled;
     }
+
+    public void Fall()
+    {
+        StartCoroutine(FallCoroutine());
+    }
+
+    private IEnumerator FallCoroutine()
+    {
+        Vector3 newPosition = transform.position;
+        newPosition.y = groundY - 0.6f;
+        transform.position = newPosition;
+        isRunning = false;
+        isGrabbing = true;
+        yield return new WaitForSeconds(1.0f);
+
+        while (true)
+        {
+            newPosition.y -= Time.fixedDeltaTime * 5;
+            transform.position = newPosition;
+            yield return new WaitForEndOfFrame();
+        }
+    }
+        
 
     private void UpdateAnimations()
     {
         animator.SetBool("IsJumping", isJumping);
         animator.SetBool("IsRolling", isRolling);
         animator.SetBool("LeftArm", jumpWithLeftArm);
+        animator.SetBool("IsGrabbing", isGrabbing);
     }
 }

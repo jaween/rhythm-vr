@@ -88,11 +88,6 @@ public class PoleBoxController : MonoBehaviour {
         }
     }
 
-    public void DestroyPoleBox()
-    {
-        Destroy(gameObject);
-    }
-
     public void SetPlatform(PlatformType type)
     {
         switch (type)
@@ -115,5 +110,35 @@ public class PoleBoxController : MonoBehaviour {
         {
             platform.SetActive(true);
         }
+    }
+
+    public void Lower(float amount)
+    {
+        StartCoroutine(LowerCoroutine(amount));
+    }
+
+    public void DestroyPoleBox()
+    {
+        Destroy(gameObject);
+    }
+
+    private IEnumerator LowerCoroutine(float amount)
+    {
+        Vector3 fromPosition = transform.position;
+        Vector3 toPosition = transform.position;
+        toPosition.y -= amount;
+        transform.position = toPosition;
+        float startTime = Time.time;
+        while (true)
+        {
+            float interpolant = (Time.time - startTime) * 5;
+            transform.position = Vector3.Lerp(fromPosition, toPosition, interpolant);
+            if (interpolant >= 1.0f)
+            {
+                break;
+            }
+            yield return new WaitForEndOfFrame();
+        }
+        Debug.Log("Done");
     }
 }

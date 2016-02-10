@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System;
+using UnityEngine.SceneManagement;
 
 public class NightWalkChoreograhper : BaseChoreographer
 {
@@ -25,7 +26,10 @@ public class NightWalkChoreograhper : BaseChoreographer
     private float debugMusicStartOffset;
     private const float longBeatThreshold = 0.65f;
     private const float shortBeatThreshold = 0.3f;
-    private readonly string[] events = new string[] { "pop", "roll_audio", "start_roll", "end_roll", "no_platform", "raise", "result" };
+    private readonly string[] events = new string[] { "pop", "roll_audio", "start_roll", "end_roll", "gap", "raises", "raised", "result" };
+    private float newPoleHeight = 0;
+    private float raiseHeight = 0.6f;
+    private bool controllableState = true;
 
     protected override void Initialise()
     {
@@ -33,7 +37,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         timingsManager = new TimingsManager(timingsTextAsset, new List<string>(events));
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = 4;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
+        debugMusicStartOffset = 0;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
         musicAudioSource.time = debugMusicStartOffset;
 
         groundY = characterController.transform.position.y - 0.5f;
@@ -46,6 +50,11 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     protected override void HandleInput(PlayerAction playerAction)
     {
+        if (!controllableState)
+        {
+            return;
+        }
+
         bool playerMadeAnAttempt = false;
         switch (playerAction)
         {
@@ -108,15 +117,31 @@ public class NightWalkChoreograhper : BaseChoreographer
 
         switch (result) {
             case TimingsManager.TimingResult.GOOD:
-                bool positive = true;
-                TempPlaySound(positive);
+                TempPlayPositiveSound();
                 poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
+                if (triggers.Contains(events[5]))
+                {
+                    LowerAllPoles();
+                }
                 break;
             case TimingsManager.TimingResult.BAD:
+                TempPlayPositiveSound();
+                poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
+                Debug.Log("Bad timing");
+                if (triggers.Contains(events[5]))
+                {
+                    LowerAllPoles();
+                }
+                break;
             case TimingsManager.TimingResult.MISS:
-                positive = false;
-                TempPlaySound(positive);
                 poleBox.Pop(PoleBoxController.PopType.POP_NEGATIVE);
+                if (triggers.Contains(events[5]))
+                {
+                    musicAudioSource.Stop();
+                    characterController.Fall();
+                    controllableState = false;
+                    StartCoroutine(Restart());
+                }
                 break;
             default:
                 Debug.Log("Unknown TimingResult");
@@ -143,10 +168,10 @@ public class NightWalkChoreograhper : BaseChoreographer
                     // No implementation
                     break;
                 case 4:
-                    Debug.Log("Gap");
+                    // No implmentation
                     break;
                 case 5:
-                    Debug.Log("Raise");
+                    // No implementation
                     break;
                 default:
                     Debug.Log("Unknown trigger " + trigger);
@@ -176,38 +201,25 @@ public class NightWalkChoreograhper : BaseChoreographer
                 const float degreesPerSecond = 11.5f;
                 const float startAngleDegrees = 90f;
 
+                if (timing.triggers.Contains(events[6]))
+                {
+                    newPoleHeight += raiseHeight;
+                }
+
                 float angleOffsetDegrees = 
                     (timing.time - debugMusicStartOffset) * degreesPerSecond;
                 float angle = (startAngleDegrees - angleOffsetDegrees) * 
                     Mathf.Deg2Rad;
-                float x = Mathf.Cos(angle) * characterRadius;
-                float y = groundY;
-                float z = Mathf.Sin(angle) * characterRadius;
-
-                Vector3 position = new Vector3(x, y, z);
+                Vector3 position = new Vector3(
+                    Mathf.Cos(angle) * characterRadius,
+                    groundY + newPoleHeight,
+                    Mathf.Sin(angle) * characterRadius);
                 Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
                 PoleBoxController poleBox = (PoleBoxController) Instantiate(
                     poleBoxPrefab, position, rotation);
-
-                // Platform
-                if (timing.triggers.Contains(events[4]))
-                {
-                    poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_NONE);
-                }
-                else if (timing.triggers.Contains(events[2]))
-                {
-                    poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_SHORT);
-                }
-                else if (timing.triggers.Contains(events[3]))
-                {
-                    poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_LONG);
-                }
-                else
-                {
-                    poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_MEDIUM);
-                }
+                SetPlatformType(poleBox, timing.triggers);
+                
                 poleBoxes.Add(timing.time, poleBox);
-
                 nextIndexToInstantiate++;
             }
         }
@@ -228,21 +240,49 @@ public class NightWalkChoreograhper : BaseChoreographer
             }
         }
     }
+
+    private void SetPlatformType(PoleBoxController poleBox, List<string> triggers)
+    {
+        // Platform
+        if (triggers.Contains(events[4]))
+        {
+            poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_NONE);
+        }
+        else if (triggers.Contains(events[2]))
+        {
+            poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_SHORT);
+        }
+        else if (triggers.Contains(events[3]))
+        {
+            poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_LONG);
+        }
+        else
+        {
+            poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_MEDIUM);
+        }
+    }
+
+    private void LowerAllPoles()
+    {
+        foreach (var pole in poleBoxes.Values)
+        {
+            pole.Lower(raiseHeight);
+        }
+        newPoleHeight -= raiseHeight;
+    }
     
-    private void TempPlaySound(bool positive)
+    private void TempPlayPositiveSound()
     {
         AudioClip clip;
-        if (positive)
-        {
-            clip = audioIsOnUpBeat == true ? regularBeatA: regularBeatB;
-            audioIsOnUpBeat = !audioIsOnUpBeat;
-            soundEffectsAudioSource.clip = clip;
-        } else {
-            clip = null;
-            audioIsOnUpBeat = false;
-        }
+        clip = audioIsOnUpBeat == true ? regularBeatA : regularBeatB;
+        audioIsOnUpBeat = !audioIsOnUpBeat;
         soundEffectsAudioSource.clip = clip;
         soundEffectsAudioSource.Play();
+    }
 
+    private IEnumerator Restart()
+    {
+        yield return new WaitForSeconds(4.0f);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
