@@ -28,7 +28,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     private const float shortBeatThreshold = 0.3f;
     private readonly string[] events = new string[] { "pop", "roll_audio", "start_roll", "end_roll", "gap", "raises", "raised", "result" };
     private float newPoleHeight = 0;
-    private float raiseHeight = 0.6f;
+    private float raiseHeight = 0.7f;
     private bool controllableState = true;
 
     protected override void Initialise()
@@ -37,8 +37,9 @@ public class NightWalkChoreograhper : BaseChoreographer
         timingsManager = new TimingsManager(timingsTextAsset, new List<string>(events));
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = 12;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
+        debugMusicStartOffset = 0;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
         musicAudioSource.time = debugMusicStartOffset;
+        musicAudioSource.pitch = Time.timeScale;
 
         groundY = characterController.transform.position.y - 0.5f;
         characterRadius = characterController.transform.position.z;
@@ -117,20 +118,21 @@ public class NightWalkChoreograhper : BaseChoreographer
 
         switch (result) {
             case TimingsManager.TimingResult.GOOD:
-                TempPlayPositiveSound();
-                poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
+            case TimingsManager.TimingResult.BAD:
                 if (triggers.Contains(events[5]))
                 {
                     LowerAllPoles();
                 }
-                break;
-            case TimingsManager.TimingResult.BAD:
-                TempPlayPositiveSound();
-                poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
-                Debug.Log("Bad timing");
-                if (triggers.Contains(events[5]))
+                if (triggers.Contains(events[3]))
                 {
-                    LowerAllPoles();
+                    // End of roll
+                    poleBox.RollFireworks();
+                }
+                else if (!triggers.Contains(events[2]))
+                {
+                    // No effects on a successful start roll
+                    TempPlayPositiveSound();
+                    poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
                 }
                 break;
             case TimingsManager.TimingResult.MISS:
@@ -166,9 +168,9 @@ public class NightWalkChoreograhper : BaseChoreographer
                 case 1:
                     tempAudioSourceB.Play();
                     poleBox = poleBoxes[nextTriggerTiming];
-                    poleBox.Spin(true);
+                    poleBox.RollSpinEffects(true);
                     poleBox = poleBoxes[twoNextTriggerTiming];
-                    poleBox.Spin(false);
+                    poleBox.RollSpinEffects(false);
                     break;
                 case 2:
                     // No implementation

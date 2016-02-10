@@ -14,7 +14,7 @@ public class PoleBoxController : MonoBehaviour {
     public GameObject spinA;
     public GameObject spinB;
     public FireworksController fireworksController;
-
+    
     private GameObject popup;
     private GameObject platform = null;
     private bool popped = false;
@@ -40,7 +40,8 @@ public class PoleBoxController : MonoBehaviour {
         if (popType == PopType.POP_POSITIVE)
         {
             popup = positivePopup;
-            fireworksController.CreateFireworks();
+            bool rollFireworks = false;
+            fireworksController.CreateFireworks(rollFireworks);
         }
         else if (popType == PopType.POP_NEGATIVE)
         {
@@ -57,9 +58,7 @@ public class PoleBoxController : MonoBehaviour {
         Animator animator = GetComponentInChildren<Animator>();
         animator.SetBool("IsOpen", popped);
 
-        // Fireworks
         innerBox.SetActive(false);
-        fireworks.Play();
     }
 
     public void FixedUpdate()
@@ -81,12 +80,10 @@ public class PoleBoxController : MonoBehaviour {
             if (fadingInterpolant < 0)
             {
                 enabled = false;
-                fireworks.Stop();
             }
 
             Renderer renderer = popup.GetComponentInChildren<SpriteRenderer>();
             Color color = renderer.material.color;
-            float alpha = Mathf.Lerp(color.a, 1.0f, popupInterpolant);
             color = new Color(color.r, color.g, color.b, fadingInterpolant);
             renderer.material.color = color;
         }
@@ -121,10 +118,17 @@ public class PoleBoxController : MonoBehaviour {
         StartCoroutine(LowerCoroutine(amount));
     }
 
-    public void Spin(bool first)
+    public void RollSpinEffects(bool first)
     {
         StartCoroutine(SpinCoroutine(first));
     }
+
+    public void RollFireworks()
+    {
+        bool rollFireworks = true;
+        fireworksController.CreateFireworks(rollFireworks);
+    }
+
     public void DestroyPoleBox()
     {
         Destroy(gameObject);
@@ -147,7 +151,6 @@ public class PoleBoxController : MonoBehaviour {
             }
             yield return new WaitForEndOfFrame();
         }
-        Debug.Log("Done");
     }
 
     private IEnumerator SpinCoroutine(bool first)

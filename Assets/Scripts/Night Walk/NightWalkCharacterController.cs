@@ -3,7 +3,8 @@ using System.Collections;
 
 public class NightWalkCharacterController : MonoBehaviour
 {
-    public float jumpHeight = 1;
+    public float jumpHeight;
+    public GameObject jumpMask;
 
     private Animator animator;
     private bool isRunning = true;
@@ -53,7 +54,7 @@ public class NightWalkCharacterController : MonoBehaviour
             if (isSuperJumping)
             {
                 ratioOfJump = airTime / superJumpAirTime;
-                superJumpMultiplier = 2;
+                superJumpMultiplier = 2.4f;
             }
             else
             {
@@ -105,7 +106,12 @@ public class NightWalkCharacterController : MonoBehaviour
             isJumping = true;
             isRolling = false;
             isSuperJumping = superJump;
+            jumpMask.SetActive(superJump);
             animator.SetTrigger("StartJumpTrigger");
+            if (superJump)
+            {
+                StartCoroutine(HideJumpMask());
+            }
             jumped = true;
         }
 
@@ -161,6 +167,12 @@ public class NightWalkCharacterController : MonoBehaviour
             transform.position = newPosition;
             yield return new WaitForEndOfFrame();
         }
+    }
+
+    private IEnumerator HideJumpMask()
+    {
+        yield return new WaitForSeconds(Time.deltaTime);
+        jumpMask.SetActive(false);
     }
         
 
