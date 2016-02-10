@@ -111,6 +111,11 @@ public class TimingsManager
         get { return nextPlayerTimingIndex; }
     }
 
+    public int NextTriggerTimingIndex
+    {
+        get { return nextTriggerTimingIndex; }
+    }
+
     // TODO(jaween): Make this a struct?
     public class Timing
     {

@@ -37,7 +37,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         timingsManager = new TimingsManager(timingsTextAsset, new List<string>(events));
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = 0;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
+        debugMusicStartOffset = 12;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
         musicAudioSource.time = debugMusicStartOffset;
 
         groundY = characterController.transform.position.y - 0.5f;
@@ -151,6 +151,11 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     protected override void HandleTriggers(List<string> triggers)
     {
+        float nextTriggerTiming = 
+            timingsManager.Timings[timingsManager.NextTriggerTimingIndex].time;
+        float twoNextTriggerTiming = 
+            timingsManager.Timings[timingsManager.NextTriggerTimingIndex + 1].time;
+        PoleBoxController poleBox;
         foreach (var trigger in triggers)
         {
             // TODO(jaween): Replace with enums or class of const ints
@@ -160,6 +165,10 @@ public class NightWalkChoreograhper : BaseChoreographer
                     break;
                 case 1:
                     tempAudioSourceB.Play();
+                    poleBox = poleBoxes[nextTriggerTiming];
+                    poleBox.Spin(true);
+                    poleBox = poleBoxes[twoNextTriggerTiming];
+                    poleBox.Spin(false);
                     break;
                 case 2:
                     // No implementation

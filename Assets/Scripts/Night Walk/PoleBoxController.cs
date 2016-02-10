@@ -11,6 +11,9 @@ public class PoleBoxController : MonoBehaviour {
     public GameObject longPlatform;
     public GameObject mediumPlatform;
     public GameObject shortPlatform;
+    public GameObject spinA;
+    public GameObject spinB;
+    public FireworksController fireworksController;
 
     private GameObject popup;
     private GameObject platform = null;
@@ -37,6 +40,7 @@ public class PoleBoxController : MonoBehaviour {
         if (popType == PopType.POP_POSITIVE)
         {
             popup = positivePopup;
+            fireworksController.CreateFireworks();
         }
         else if (popType == PopType.POP_NEGATIVE)
         {
@@ -66,7 +70,7 @@ public class PoleBoxController : MonoBehaviour {
             float popupMultiplier = 13.0f;
             float popupInterpolant = Time.fixedDeltaTime * popupMultiplier;
             Vector3 fromPosition = popup.transform.position;
-            Vector3 toPosition = transform.position + Vector3.up * 2.5f;
+            Vector3 toPosition = fireworksController.transform.position;
             popup.transform.position = Vector3.Lerp(
                 fromPosition, toPosition, popupInterpolant);
 
@@ -117,6 +121,10 @@ public class PoleBoxController : MonoBehaviour {
         StartCoroutine(LowerCoroutine(amount));
     }
 
+    public void Spin(bool first)
+    {
+        StartCoroutine(SpinCoroutine(first));
+    }
     public void DestroyPoleBox()
     {
         Destroy(gameObject);
@@ -140,5 +148,47 @@ public class PoleBoxController : MonoBehaviour {
             yield return new WaitForEndOfFrame();
         }
         Debug.Log("Done");
+    }
+
+    private IEnumerator SpinCoroutine(bool first)
+    {
+        GameObject gameObject = spinA;
+        if (!first)
+        {
+            gameObject = spinB;
+            yield return new WaitForSeconds(0.4f);
+        }
+        gameObject.SetActive(true);
+
+        float startTime = Time.time;
+        float interpolant = 0;
+        Quaternion fromRotation = gameObject.transform.rotation;
+        while (true)
+        {
+            float angle = first ? 360 : -360;
+            Quaternion spin = Quaternion.AngleAxis(
+                angle * interpolant, Vector3.forward);
+            gameObject.transform.rotation = fromRotation * spin;
+
+            Vector3 scale = gameObject.transform.localScale;
+            scale = Vector3.one * (first ? (1 - interpolant) : interpolant);
+            gameObject.transform.localScale = scale;
+
+            // Fade
+            SpriteRenderer renderer = gameObject.GetComponentInChildren<SpriteRenderer>();
+            Color color = renderer.material.color;
+            float fromAlpha = first ? 0.3f : 1.0f;
+            float toAlpha = first ? 0.9f : 0.0f;
+            color.a = Mathf.Lerp(fromAlpha, toAlpha, interpolant);
+            renderer.material.color = color;
+
+            if (interpolant >= 1.0f)
+            {
+                break;
+            }
+            interpolant = (Time.time - startTime) * 3.0f;
+            yield return new WaitForEndOfFrame();
+        }
+        gameObject.SetActive(false);
     }
 }
