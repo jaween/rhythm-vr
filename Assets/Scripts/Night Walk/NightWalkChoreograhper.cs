@@ -10,8 +10,9 @@ public class NightWalkChoreograhper : BaseChoreographer
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public Slider slider;
-    public AudioClip regularBeatA;
-    public AudioClip regularBeatB;
+    public AudioClip attemptGoodA;
+    public AudioClip attemptGoodB;
+    public AudioClip attemptBad;
     public AudioClip doubleBeat;
     public AudioSource tempAudioSourceB;
     public float jumpHeight = 1;
@@ -115,10 +116,10 @@ public class NightWalkChoreograhper : BaseChoreographer
             return;
         }
         PoleBoxController poleBox = poleBoxes[timing];
-
+        
+        // TODO(jaween): Clean up this repeated code
         switch (result) {
             case TimingsManager.TimingResult.GOOD:
-            case TimingsManager.TimingResult.BAD:
                 if (triggers.Contains(events[5]))
                 {
                     LowerAllPoles();
@@ -132,11 +133,28 @@ public class NightWalkChoreograhper : BaseChoreographer
                 {
                     // No effects on a successful start roll
                     TempPlayPositiveSound();
-                    poleBox.Pop(PoleBoxController.PopType.POP_POSITIVE);
+                    poleBox.Pop(PoleBoxController.PopType.POP_GOOD);
+                }
+                break;
+            case TimingsManager.TimingResult.BAD:
+                if (triggers.Contains(events[5]))
+                {
+                    LowerAllPoles();
+                }
+                if (triggers.Contains(events[3]))
+                {
+                    // End of roll
+                    poleBox.RollFireworks();
+                }
+                else if (!triggers.Contains(events[2]))
+                {
+                    // No effects on a successful start roll
+                    TempPlayBadSound();
+                    poleBox.Pop(PoleBoxController.PopType.POP_BAD);
                 }
                 break;
             case TimingsManager.TimingResult.MISS:
-                poleBox.Pop(PoleBoxController.PopType.POP_NEGATIVE);
+                poleBox.Pop(PoleBoxController.PopType.POP_MISS);
                 if (triggers.Contains(events[5]))
                 {
                     musicAudioSource.Stop();
@@ -285,9 +303,15 @@ public class NightWalkChoreograhper : BaseChoreographer
     private void TempPlayPositiveSound()
     {
         AudioClip clip;
-        clip = audioIsOnUpBeat == true ? regularBeatA : regularBeatB;
+        clip = audioIsOnUpBeat == true ? attemptGoodA : attemptGoodB;
         audioIsOnUpBeat = !audioIsOnUpBeat;
         soundEffectsAudioSource.clip = clip;
+        soundEffectsAudioSource.Play();
+    }
+
+    private void TempPlayBadSound()
+    {
+        soundEffectsAudioSource.clip = attemptBad;
         soundEffectsAudioSource.Play();
     }
 

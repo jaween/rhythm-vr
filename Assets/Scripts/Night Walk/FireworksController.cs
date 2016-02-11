@@ -48,6 +48,7 @@ public class FireworksController : MonoBehaviour {
         StartCoroutine(UpdateFireworksCoroutine());
     }
 
+    // TODO(jaween): Clean up and merge duplicate code with the PoleBoxController
 	private IEnumerator UpdateFireworksCoroutine() 
     {
         float startTime = Time.time;
@@ -69,6 +70,7 @@ public class FireworksController : MonoBehaviour {
                 multiplier = 3.0f;
             }
 
+            float interpolant = 0;
             for (int layer = 0; layer < layerCount; layer++)
             {
                 if (rollFireworks)
@@ -85,24 +87,23 @@ public class FireworksController : MonoBehaviour {
                     direction = Vector3.Normalize(direction);
                     Vector3 fromPosition = firework.transform.position;
                     Vector3 toPosition = nodePosition + direction * newRadius;
+                    interpolant = Time.fixedDeltaTime * multiplier;
                     firework.transform.position = Vector3.Lerp(
-                        fromPosition, toPosition, Time.fixedDeltaTime * multiplier);
+                        fromPosition, toPosition, interpolant);
 
                     // Fade
                     SpriteRenderer renderer = firework.GetComponent<SpriteRenderer>();
                     Color color = renderer.material.color;
-                    color.a = Mathf.Lerp(color.a, 0.0f, Time.fixedDeltaTime * multiplier);
+                    color.a = Mathf.Lerp(color.a, 0.0f, interpolant);
                     renderer.material.color = color;
                 }
             }
 
-            if (Time.time - startTime >= 1.0f)
+            if (interpolant >= 1)
             {
                 break;
             }
             yield return new WaitForEndOfFrame();
         }
-
-        Destroy(this);
 	}
 }

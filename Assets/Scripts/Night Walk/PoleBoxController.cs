@@ -5,9 +5,12 @@ public class PoleBoxController : MonoBehaviour {
 
     public GameObject poleBox;
     public GameObject innerBox;
-    public GameObject positivePopup;
-    public GameObject negativePopup;
-    public ParticleSystem fireworks;
+    public GameObject goodPopup;
+    public GameObject badPopup;
+    public GameObject badPopupHeart;
+    public GameObject badPopupWord;
+    public GameObject missPopup;
+    public GameObject missPopupDots;
     public GameObject longPlatform;
     public GameObject mediumPlatform;
     public GameObject shortPlatform;
@@ -28,69 +31,58 @@ public class PoleBoxController : MonoBehaviour {
 
     public enum PopType
     {
-        POP_POSITIVE,
-        POP_NEGATIVE,
-        POP_EMPTY
+        POP_GOOD,
+        POP_BAD,
+        POP_MISS
     }
 
     public void Pop(PopType popType)
     {
-        if (popType == PopType.POP_POSITIVE)
-        {
-            popup = positivePopup;
-            bool rollFireworks = false;
-            fireworksController.CreateFireworks(rollFireworks);
-        }
-        else if (popType == PopType.POP_NEGATIVE)
-        {
-            popup = negativePopup;
-        }
-
-        // Animations
-        if (popType != PopType.POP_EMPTY)
-        {
-            popup.SetActive(true);
-        }
+        // Enable animations
         Animator animator = GetComponentInChildren<Animator>();
         animator.SetBool("IsOpen", true);
-
         innerBox.SetActive(false);
-        StartCoroutine(PopCoroutine());
-    }
 
-    public IEnumerator PopCoroutine()
-    {
-        float startTime = Time.time;
-        while (true)
-        { 
-            // Popup movement
-            float popupMultiplier = 13.0f;
-            float popupInterpolant = Time.deltaTime * popupMultiplier;
-            Vector3 fromPosition = popup.transform.position;
-            Vector3 toPosition = fireworksController.transform.position;
-            popup.transform.position = Vector3.Lerp(
-                fromPosition, toPosition, popupInterpolant);
+        Vector3 fromPosition;
 
-            // Popup fading
-            float fadingMultiplier = 3.0f;
-            float timeDelta = Time.time - startTime;
-            float fadingInterpolant = Mathf.Sin(timeDelta * fadingMultiplier);
-            if (fadingInterpolant < 0)
-            {
-                enabled = false;
-            }
+        switch (popType)
+        {
+            case PopType.POP_GOOD:
+                popup = goodPopup;
+                bool rollFireworks = false;
+                fromPosition = popup.transform.position;
+                Vector3 toPosition = fireworksController.transform.position;
+                float amountY = (toPosition - fromPosition).y;
 
-            Renderer renderer = popup.GetComponentInChildren<SpriteRenderer>();
-            Color color = renderer.material.color;
-            color = new Color(color.r, color.g, color.b, fadingInterpolant);
-            renderer.material.color = color;
-
-            if (timeDelta >= 1.0f)
-            {
+                // Start animations
+                fireworksController.CreateFireworks(rollFireworks);
+                StartCoroutine(YPositionCoroutine(popup, fromPosition, amountY, 3.0f, 13.0f));
+                StartCoroutine(AlphaCoroutine(popup, 1.0f, 0.0f, 1.0f, 0.0f));
                 break;
-            }
-            yield return new WaitForEndOfFrame();
+            case PopType.POP_BAD:
+                popup = badPopup;
+                const float amountHeart = 0.8f;
+                const float amountWord = 0.4f;
+                fromPosition = popup.transform.position;
+
+                // Start animations
+                StartCoroutine(YPositionCoroutine(badPopupHeart, fromPosition, amountHeart, 3.0f, 13.0f));
+                StartCoroutine(YPositionCoroutine(badPopupWord, fromPosition, amountWord, 3.0f, 13.0f));
+                StartCoroutine(AlphaCoroutine(badPopupHeart, 1.0f, 0.0f, 2.0f, 0.5f));
+                StartCoroutine(AlphaCoroutine(badPopupWord, 1.0f, 0.0f, 30.0f, 0.2f));
+                break;
+            case PopType.POP_MISS:
+                popup = missPopup;
+                amountY = 0.2f;
+                fromPosition = popup.transform.position;
+
+                // Start animations
+                StartCoroutine(YPositionCoroutine(popup,fromPosition, amountY, 3.0f, 13.0f));
+                StartCoroutine(AlphaCoroutine(missPopupDots, 1.0f, 0.0f, 4.0f, 0.0f));
+                break;
         }
+
+        popup.SetActive(true);
     }
 
     public void SetPlatform(PlatformType type)
@@ -119,7 +111,7 @@ public class PoleBoxController : MonoBehaviour {
 
     public void Lower(float amount)
     {
-        StartCoroutine(LowerCoroutine(amount));
+        StartCoroutine(YPositionCoroutine(gameObject, transform.position, -amount, 1.0f, 5.0f));
     }
 
     public void RollSpinEffects(bool first)
@@ -136,30 +128,12 @@ public class PoleBoxController : MonoBehaviour {
     public void DestroyPoleBox()
     {
         StartCoroutine(AlphaCoroutine(poleBox, 1.0f, 0.0f, 1.0f, 0.0f));
+        StartCoroutine(AlphaCoroutine(popup, 1.0f, 0.0f, 1.0f, 0.0f));
         StartCoroutine(AlphaCoroutine(platform, 1.0f, 0.0f, 1.0f, 0.5f));
         StartCoroutine(DestroyCoroutine());
     }
 
     // TODO(jaween): Clean up this repeated code
-    private IEnumerator LowerCoroutine(float amount)
-    {
-        Vector3 fromPosition = transform.position;
-        Vector3 toPosition = transform.position;
-        toPosition.y -= amount;
-        transform.position = toPosition;
-        float startTime = Time.time;
-        while (true)
-        {
-            float interpolant = (Time.time - startTime) * 5;
-            transform.position = Vector3.Lerp(fromPosition, toPosition, interpolant);
-            if (interpolant >= 1.0f)
-            {
-                break;
-            }
-            yield return new WaitForEndOfFrame();
-        }
-    }
-
     private IEnumerator SpinCoroutine(bool first)
     {
         GameObject gameObject = spinA;
@@ -199,9 +173,9 @@ public class PoleBoxController : MonoBehaviour {
             interpolant = (Time.time - startTime) * 3.0f;
             yield return new WaitForEndOfFrame();
         }
-        gameObject.SetActive(false);
     }
-
+    
+    // TODO(jaween): Make interfaces for alpha and yposition coroutines more similar
     private IEnumerator AlphaCoroutine(GameObject gameObject, float from, 
         float to, float multiplier, float delay)
     {
@@ -214,6 +188,7 @@ public class PoleBoxController : MonoBehaviour {
             foreach (var renderer in renderers)
             {
                 Color color = renderer.material.color;
+                from = color.a < from ? color.a : from;
                 color.a = Mathf.Lerp(from, to, interpolant);
                 renderer.material.color = color;
             }
@@ -222,6 +197,25 @@ public class PoleBoxController : MonoBehaviour {
                 break;
             }
             interpolant = (Time.time - startTime) * multiplier;
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private IEnumerator YPositionCoroutine(GameObject gameObject, Vector3 fromPosition,
+    float amount, float duration, float multiplier)
+    {
+        Vector3 toPosition = fromPosition;
+        toPosition.y += amount;
+        float startTime = Time.time;
+        while (true)
+        {
+            float timeDelta = Time.time - startTime;
+            float interpolant = timeDelta * multiplier;
+            gameObject.transform.position = Vector3.Lerp(fromPosition, toPosition, interpolant);
+            if (timeDelta >= duration)
+            {
+                break;
+            }
             yield return new WaitForEndOfFrame();
         }
     }
