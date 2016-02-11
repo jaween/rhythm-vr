@@ -52,25 +52,21 @@ public class FireworksController : MonoBehaviour {
 	private IEnumerator UpdateFireworksCoroutine() 
     {
         float startTime = Time.time;
+        float duration = rollFireworks ? 4.0f : 0.8f;
+        int layerCount = rollFireworks ? 3 : 1;
+        Vector3 nodePosition = transform.position;
+        float interpolant = 0;
         while (true)
         {
-            float multiplier = 9.0f;
             const float angleDelta = 360.0f / fireworksPerLayer * Mathf.Deg2Rad;
             float newRadius = radius;
 
-            int layerCount = 1;
-            Vector3 nodePosition = transform.position;
-            if (rollFireworks)
-            {
-                nodePosition = rollFireworksNode.transform.position;
-                Vector3 newNodePosition = nodePosition;
-                newNodePosition.y = Mathf.Lerp(nodePosition.y, nodePosition.y - 0.5f, Time.deltaTime * 5);
-                rollFireworksNode.transform.position = newNodePosition;
-                layerCount = rollFireworkPrefabs.Length;
-                multiplier = 3.0f;
+            nodePosition = rollFireworks ? rollFireworksNode.transform.position : nodePosition;
+            if (rollFireworks) 
+            { 
+                nodePosition.y -= 3 * interpolant;
             }
 
-            float interpolant = 0;
             for (int layer = 0; layer < layerCount; layer++)
             {
                 if (rollFireworks)
@@ -87,7 +83,6 @@ public class FireworksController : MonoBehaviour {
                     direction = Vector3.Normalize(direction);
                     Vector3 fromPosition = firework.transform.position;
                     Vector3 toPosition = nodePosition + direction * newRadius;
-                    interpolant = Time.fixedDeltaTime * multiplier;
                     firework.transform.position = Vector3.Lerp(
                         fromPosition, toPosition, interpolant);
 
@@ -98,11 +93,11 @@ public class FireworksController : MonoBehaviour {
                     renderer.material.color = color;
                 }
             }
-
             if (interpolant >= 1)
             {
                 break;
             }
+            interpolant = (Time.time - startTime) / duration;
             yield return new WaitForEndOfFrame();
         }
 	}
