@@ -28,4 +28,5 @@ To do
  * Fix beats requiring specific input to succeed
  * Fix ledge grabbing position/animation
  * Fix double beat boxes not opening
+ * Fix bad attempt animation
  * Fix fade in of platforms

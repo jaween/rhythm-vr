@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class TimingsManager 
 {
@@ -15,16 +16,16 @@ public class TimingsManager
 
     public enum TimingResult
     {
-        GOOD, BAD, MISS, IGNORE_ATTEMPT
+        GOOD, BAD, MISS, NO_BEAT
     }
 
-    public TimingsManager(TextAsset timingTextAsset, List<string> events)
+    public TimingsManager(TextAsset timingsTextAsset, BaseTriggers possibleTriggers)
     {
-        timings = TimingsParser.ParseTimingsFormat(timingTextAsset.text, events);
+        timings = TimingsParser.ParseTimingsFormat(timingsTextAsset.text, possibleTriggers);
         moveToNextPlayerTiming();
         moveToNextTriggerTiming();
     }
-
+    
     private bool moveToNextPlayerTiming()
     {
         nextPlayerTimingIndex++;
@@ -49,7 +50,7 @@ public class TimingsManager
         }
     }
 
-    public TimingResult checkForMiss(float ellapsedTime, out List<string> triggers)
+    public TimingResult checkForMiss(float ellapsedTime, out List<int> triggers)
     {
         Timing timing = timings[nextPlayerTimingIndex];
         float nextPlayerTiming = timing.time;
@@ -59,17 +60,17 @@ public class TimingsManager
             moveToNextPlayerTiming();
             return TimingResult.MISS;
         }
-        return TimingResult.IGNORE_ATTEMPT;
+        return TimingResult.NO_BEAT;
     }
 
-    public TimingResult checkAttempt(float ellapsedTime, out List<string> triggers)
+    public TimingResult checkAttempt(float ellapsedTime, out List<int> triggers)
     {
         Timing timing = timings[nextPlayerTimingIndex];
         float nextPlayerTiming = timing.time;
         triggers = timing.triggers;
         if (finished)
         {
-            return TimingResult.IGNORE_ATTEMPT;
+            return TimingResult.NO_BEAT;
         } 
         else if (ellapsedTime >= nextPlayerTiming - leeway && 
             ellapsedTime <= nextPlayerTiming + leeway)
@@ -85,13 +86,13 @@ public class TimingsManager
         }
         else
         {
-            return TimingResult.IGNORE_ATTEMPT;
+            return TimingResult.NO_BEAT;
         }
     }
 
-    public List<string> checkForTrigger(float ellapsedTime)
+    public List<int> checkForTrigger(float ellapsedTime)
     {
-        List<string> triggers = new List<string>();
+        List<int> triggers = new List<int>();
         Timing nextTriggerTiming = timings[nextTriggerTimingIndex];
         if (!finished && ellapsedTime > nextTriggerTiming.time)
         {
@@ -121,7 +122,13 @@ public class TimingsManager
     {
         // TODO(jaween): Generate C# class with enums or const ints instread of strings
         public float time;
-        public List<string> triggers;
+        public List<int> triggers;
+    }
 
+    // TODO(jaween): Can this and it's devrived classes be static?
+    public abstract class BaseTriggers
+    {
+        public const int NO_TRIGGER = -1;
+        public abstract int GetTrigger(string triggerString);
     }
 }

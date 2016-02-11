@@ -10,7 +10,7 @@ public static class TimingsParser {
     private static float previousTime = 0;
     private static List<TimingsManager.Timing> timings;
 
-    public static List<TimingsManager.Timing> ParseTimingsFormat(string text, List<string> possibleEvents)
+    public static List<TimingsManager.Timing> ParseTimingsFormat(string text, TimingsManager.BaseTriggers possibleTriggers)
     {
         timings = new List<TimingsManager.Timing>();
 
@@ -19,44 +19,36 @@ public static class TimingsParser {
         foreach (var line in lines)
         {
             var tokens = line.Split(tokenDelimeters);
+            var triggers = new List<int>();
             if (tokens.Length > 1)
             {
-                if (possibleEvents.Contains(tokens[1]))
-                { 
-                    var events = new List<string>();
-                    for (var i = 1; i < tokens.Length; i++)
-                    {
-                        // Adds non-blank tokens
-                        if (tokens[i] != "")
-                        {
-                            events.Add(tokens[i]);
-                        }
-                    }
-                    AddTimingFromString(tokens[0], events);
-                }
-                else
+                foreach (var token in tokens)
                 {
-                    Debug.Log("Unknown timing event: '" + tokens[1] + "'");
+                    int trigger = possibleTriggers.GetTrigger(tokens[1]);
+                    if (trigger != TimingsManager.BaseTriggers.NO_TRIGGER)
+                    {
+                        triggers.Add(trigger);
+                    }
+                    else
+                    {
+                        Debug.Log("Unknown timing event: '" + tokens[1] + "'");
+                    }
                 }
             }
-            else
-            {
-                AddTimingFromString(tokens[0], new List<string>());
-            }
+            AddTimingFromString(tokens[0], triggers);
         }
 
         return timings;
     }
 
-    // TODO(jaween): Find and replace occurances of "events" with "triggers" or something
-    private static void AddTimingFromString(string timingString, List<string> events)
+    private static void AddTimingFromString(string timingString, List<int> triggers)
     {
         float timingFloat;
         if (StringToFloat(timingString, out timingFloat))
         {
             TimingsManager.Timing timing = new TimingsManager.Timing();
             timing.time = timingFloat;
-            timing.triggers = events;
+            timing.triggers = triggers;
             timings.Add(timing);
         }
     }

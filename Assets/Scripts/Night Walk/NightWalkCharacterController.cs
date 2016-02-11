@@ -10,6 +10,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private bool isRunning = true;
     private bool isJumping = false;
     private bool isSuperJumping = false;
+    private bool isStuntedJumping = false;
     private bool isRolling = false;
     private bool isGrabbing = false;
     private bool jumpWithLeftArm = false;
@@ -48,13 +49,19 @@ public class NightWalkCharacterController : MonoBehaviour
             float airTime = Time.time - jumpStartTime;
             const float regularJumpAirTime = 0.5f;
             const float superJumpAirTime = 0.7f;
+            const float stuntedJumpAirTime = 0.2f;
             const float degreesPerJump = 180.0f;
 
-            float superJumpMultiplier = 1;
+            float jumpMultiplier = 1;
             if (isSuperJumping)
             {
                 ratioOfJump = airTime / superJumpAirTime;
-                superJumpMultiplier = 2.4f;
+                jumpMultiplier = 2.4f;
+            }
+            else if (isStuntedJumping)
+            {
+                ratioOfJump = airTime / stuntedJumpAirTime;
+                jumpMultiplier = 0.3f;
             }
             else
             {
@@ -62,7 +69,7 @@ public class NightWalkCharacterController : MonoBehaviour
             }
             
             float jumpCurve = Mathf.Sin(ratioOfJump * degreesPerJump * Mathf.Deg2Rad);
-            float heightAboveGround = jumpHeight * superJumpMultiplier * jumpCurve;
+            float heightAboveGround = jumpHeight * jumpMultiplier * jumpCurve;
             newPosition.y = groundY + heightAboveGround;
 
             if (heightAboveGround < 0)
@@ -71,6 +78,7 @@ public class NightWalkCharacterController : MonoBehaviour
                 ratioOfJump = 0;
                 isJumping = false;
                 isSuperJumping = false;
+                isStuntedJumping = false;
                 animator.SetBool("IsJumping", isJumping);
             }
         }
@@ -90,22 +98,39 @@ public class NightWalkCharacterController : MonoBehaviour
         }
     }
 
+    public bool IsReadyForAction()
+    {
+        bool ready = false;
+        if (!isRolling && (!isJumping || ratioOfJump >= nextJumpThreshold))
+        {
+            ready = true;
+        }
+        return ready;
+    }
+
+    public bool IsRolling()
+    {
+        return isRolling;
+    }
+
     // While the jump ratio is greater than these thresholds, the character can
     // jump again or roll, this makes the controls feel nicer
     // TODO(jaween): Implement this properly not in this temp way
     private const float nextJumpThreshold = 0.8f;
     private const float nextRollThreshold = 0.95f;
 
-    public bool Jump(bool superJump)
+    // TODO(jaween): Change the inteface for doing different jumps
+    public bool Jump(bool superJump, bool stuntedJump)
     {
         bool jumped = false;
-        if (!isRolling && !isJumping || ratioOfJump >= nextJumpThreshold)
+        if (IsReadyForAction())
         {
             jumpWithLeftArm = !jumpWithLeftArm;
             jumpStartTime = Time.time;
             isJumping = true;
             isRolling = false;
             isSuperJumping = superJump;
+            isStuntedJumping = stuntedJump;
             jumpMask.SetActive(superJump);
             animator.SetTrigger("StartJumpTrigger");
             if (superJump)
@@ -121,7 +146,7 @@ public class NightWalkCharacterController : MonoBehaviour
     public bool Roll()
     {
         bool rolled = false;
-        if (!isRolling && !isJumping || ratioOfJump >= nextRollThreshold)
+        if (IsReadyForAction())
         {
             isJumping = false;
             isRolling = true;
@@ -140,7 +165,8 @@ public class NightWalkCharacterController : MonoBehaviour
             rollAngle = 0;
             isRolling = false;
             bool superJump = true;
-            Jump(superJump);
+            bool stuntedJump = false;
+            Jump(superJump, stuntedJump);
             endRolled = true;
         }
 

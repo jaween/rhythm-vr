@@ -33,7 +33,8 @@ public class PoleBoxController : MonoBehaviour {
     {
         POP_GOOD,
         POP_BAD,
-        POP_MISS
+        POP_MISS,
+        POP_EMPTY
     }
 
     public void Pop(PopType popType)
@@ -75,6 +76,9 @@ public class PoleBoxController : MonoBehaviour {
                 // Start animations
                 StartCoroutine(YPositionCoroutine(popup, popup.transform.position, amountY, 0.15f));
                 StartCoroutine(AlphaCoroutine(missPopupDots, 1.0f, 0.0f, 0.3f, 0.0f));
+                break;
+            case PopType.POP_EMPTY:
+                // No implementation
                 break;
             default:
                 Debug.Log("Unknown pop type " + popType);

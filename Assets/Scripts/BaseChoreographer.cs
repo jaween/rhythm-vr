@@ -48,7 +48,7 @@ public abstract class BaseChoreographer : MonoBehaviour
     
     private void BaseHandleTriggers()
     {
-        List<string> triggers = timingsManager.checkForTrigger(musicAudioSource.time);
+        List<int> triggers = timingsManager.checkForTrigger(musicAudioSource.time);
         HandleTriggers(triggers);
     }
 
@@ -63,7 +63,7 @@ public abstract class BaseChoreographer : MonoBehaviour
         timingsHandled = true;
 
         TimingsManager.TimingResult result;
-        List<string> triggers;
+        List<int> triggers;
         bool debugWorthShowing = true;
         if (playerAction != PlayerAction.NONE)
         {
@@ -74,7 +74,7 @@ public abstract class BaseChoreographer : MonoBehaviour
             // User didn't make an attempt and had missed the timing window
             result = timingsManager.checkForMiss(musicAudioSource.time, out triggers);
 
-            if (result == TimingsManager.TimingResult.IGNORE_ATTEMPT)
+            if (result == TimingsManager.TimingResult.NO_BEAT)
             {
                 debugWorthShowing = false;
             }
@@ -85,7 +85,7 @@ public abstract class BaseChoreographer : MonoBehaviour
             Debug.Log("BaseChoreographer " + Time.time + ": " + result.ToString());
         }
 
-        PlayerTimingResult(result, triggers);
+        PlayerTimingResult(result, triggers, playerAction);
     }
 
     protected abstract void Initialise();
@@ -94,10 +94,10 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     protected abstract void GameUpdate();
 
-    protected abstract void HandleTriggers(List<string> triggers);
+    protected abstract void HandleTriggers(List<int> triggers);
 
     protected abstract void PlayerTimingResult(
-        TimingsManager.TimingResult result, List<string> triggers);
+        TimingsManager.TimingResult result, List<int> triggers, PlayerAction playerAction);
 
     public void InputAction(PlayerAction playerAction)
     {
