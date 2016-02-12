@@ -13,8 +13,7 @@ public class NightWalkTriggers : TimingsManager.BaseTriggers
     public const int END_ROLL = 4;
     public const int GAP = 5;
     public const int RAISES = 6;
-    public const int RAISED = 7;
-    public const int RESULT = 8;
+    public const int RESULT = 7;
 
     private static Dictionary<string, int> mapping = new Dictionary<string, int>
     {
@@ -25,7 +24,6 @@ public class NightWalkTriggers : TimingsManager.BaseTriggers
         { "end_roll", END_ROLL },
         { "gap", GAP },
         { "raises", RAISES },
-        { "raised", RAISED },
         { "result", RESULT }
     };
 

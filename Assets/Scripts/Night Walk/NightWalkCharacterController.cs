@@ -49,7 +49,7 @@ public class NightWalkCharacterController : MonoBehaviour
             float airTime = Time.time - jumpStartTime;
             const float regularJumpAirTime = 0.5f;
             const float superJumpAirTime = 0.7f;
-            const float stuntedJumpAirTime = 0.2f;
+            const float stuntedJumpAirTime = 0.3f;
             const float degreesPerJump = 180.0f;
 
             float jumpMultiplier = 1;
@@ -209,5 +209,6 @@ public class NightWalkCharacterController : MonoBehaviour
         animator.SetBool("IsRolling", isRolling);
         animator.SetBool("LeftArm", jumpWithLeftArm);
         animator.SetBool("IsGrabbing", isGrabbing);
+        animator.SetBool("IsStuntedJumping", isStuntedJumping);
     }
 }

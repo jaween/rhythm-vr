@@ -47,7 +47,7 @@ public class FireworksController : MonoBehaviour {
 
         StartCoroutine(UpdateFireworksCoroutine());
     }
-
+    
     // TODO(jaween): Clean up and merge duplicate code with the PoleBoxController
 	private IEnumerator UpdateFireworksCoroutine() 
     {

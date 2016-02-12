@@ -20,19 +20,16 @@ public static class TimingsParser {
         {
             var tokens = line.Split(tokenDelimeters);
             var triggers = new List<int>();
-            if (tokens.Length > 1)
+            for (var tokenIndex = 1; tokenIndex < tokens.Length; tokenIndex++)
             {
-                foreach (var token in tokens)
+                int trigger = possibleTriggers.GetTrigger(tokens[tokenIndex]);
+                if (trigger != TimingsManager.BaseTriggers.NO_TRIGGER)
                 {
-                    int trigger = possibleTriggers.GetTrigger(tokens[1]);
-                    if (trigger != TimingsManager.BaseTriggers.NO_TRIGGER)
-                    {
-                        triggers.Add(trigger);
-                    }
-                    else
-                    {
-                        Debug.Log("Unknown timing event: '" + tokens[1] + "'");
-                    }
+                    triggers.Add(trigger);
+                }
+                else
+                {
+                    Debug.Log("TimingsParser: Unknown trigger: '" + tokens[tokenIndex] + "'");
                 }
             }
             AddTimingFromString(tokens[0], triggers);

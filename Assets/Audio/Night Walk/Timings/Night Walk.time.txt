@@ -44,7 +44,7 @@
 26.887905, beat
 27.433883, beat
 27.970012, beat, gap, raises
-28.498840, beat, raised
+28.498840, beat
 29.041817, beat
 29.572796, beat
 30.109774, beat
@@ -52,19 +52,19 @@
 31.198730, beat
 31.731645, beat
 32.287685, beat, gap, raises
-32.830663, beat, raised
+32.830663, beat
 33.346642, beat
 33.895620, beat
 34.429598, beat, gap, raises
-34.978576, beat, raised
+34.978576, beat
 35.515554, beat
 36.055532, beat
 36.610509, beat, gap, raises
-37.144488, beat, raised
+37.144488, beat
 37.678466, beat, gap, raises
-38.236443, beat, raised
+38.236443, beat
 38.782421, beat, gap, raises
-39.310399, beat, raised
+39.310399, beat
 39.844378, beat, roll_audio
 40.473646, start_roll
 40.640095, end_roll
@@ -84,23 +84,23 @@
 48.487026, beat
 49.036003, beat
 49.578981, beat, gap, raises
-50.133959, beat, gap, raises, raised
-50.676937, beat, gap, raises, raised
-51.222914, beat, gap, raises, raised
-51.741893, beat, gap, raises, raised
-52.287871, beat, gap, raises, raised
-52.800850, beat, gap, raises, raised
-53.361827, beat, gap, raises, raised
-53.904805, beat, gap, raises, raised
-54.444783, beat, gap, raises, raised
-54.984761, beat, gap, raises, raised
-55.542738, beat, gap, raises, raised
-56.070717, beat, gap, raises, raised
-56.619695, beat, gap, raises, raised
-57.144673, beat, gap, raises, raised
-57.681651, beat, gap, raises, raised
-58.218629, beat, roll_audio, gap, raises, raised
-58.764607, start_roll, raised
+50.133959, beat, gap, raises
+50.676937, beat, gap, raises
+51.222914, beat, gap, raises
+51.741893, beat, gap, raises
+52.287871, beat, gap, raises
+52.800850, beat, gap, raises
+53.361827, beat, gap, raises
+53.904805, beat, gap, raises
+54.444783, beat, gap, raises
+54.984761, beat, gap, raises
+55.542738, beat, gap, raises
+56.070717, beat, gap, raises
+56.619695, beat, gap, raises
+57.144673, beat, gap, raises
+57.681651, beat, gap, raises
+58.218629, beat, roll_audio, gap, raises
+58.764607, start_roll
 59.043596, end_roll, seems too long
 59.277586, roll_audio
 59.796565, start_roll
@@ -109,15 +109,15 @@
 61.449123, beat
 61.998476, beat
 62.541453, beat, gap, raises
-63.075432, raised
+63.075432
 63.627409, beat
 64.191386, beat
 64.713365, beat, gap, raises
-65.265342, beat, raised
+65.265342, beat
 65.790321, beat
 66.330299, beat
 66.876277, beat, gap, raises
-67.428254, beat, raised
+67.428254, beat
 67.942733, beat, roll_audio
 68.484211, start_roll
 68.658204, end_roll
@@ -125,31 +125,31 @@
 70.125145, beat
 70.683122, beat
 71.211100, beat, gap, raises
-71.751078, raised
+71.751078
 72.261058, beat
 72.819035, beat
 73.359013, beat, gap, raises
-73.904991, raised
+73.904991
 74.459968, beat
 75.001718, beat
 75.533924, beat, gap, raises
-76.091902, beat, gap, raises, raised
-76.612380, beat, roll_audio, gap, raises, raised
-77.138859, start_roll, raised, changes_background
+76.091902, beat, gap, raises
+76.612380, beat, roll_audio, gap, raises
+77.138859, start_roll, changes_background
 77.324851, end_roll
 78.224815, beat
 78.767793, beat
 79.322770, beat
 79.880747, beat, gap, raises
-80.423725, beat, raised
+80.423725, beat
 80.948704, beat
 81.467683, beat
 81.986662, beat, gap, raises
-82.541639, beat, raised
+82.541639, beat
 83.078617, beat
 83.642594, beat
 84.170573, beat, gap, raises
-84.710551, beat, raised
+84.710551, beat
 85.265528, beat, roll_audio
 85.799506, start_roll
 86.040997, end_roll, unsure
@@ -157,11 +157,11 @@
 87.420940, beat
 87.963918, beat
 88.488897, beat, gap, raises
-89.042374, beat, raised
+89.042374, beat
 89.577853, beat
 90.128330, beat
 90.659308, beat, gap, raises
-91.206786, beat, raised
+91.206786, beat
 91.707766, beat
 92.274743, beat
 92.808721, beat
@@ -188,5 +188,5 @@
 103.249046, end_roll
 104.162509, beat
 104.697237, beat
-105.249214, end
+105.249214, complete
 110.068518, result

@@ -10,7 +10,9 @@ public class PoleBoxController : MonoBehaviour {
     public GameObject badPopupHeart;
     public GameObject badPopupWord;
     public GameObject missPopup;
+    public GameObject missPopupNote;
     public GameObject missPopupDots;
+    public GameObject missPopupCircle;
     public GameObject longPlatform;
     public GameObject mediumPlatform;
     public GameObject shortPlatform;
@@ -34,6 +36,7 @@ public class PoleBoxController : MonoBehaviour {
         POP_GOOD,
         POP_BAD,
         POP_MISS,
+        POP_FIREWORKS,
         POP_EMPTY
     }
 
@@ -74,8 +77,14 @@ public class PoleBoxController : MonoBehaviour {
                 amountY = 0.2f;
 
                 // Start animations
-                StartCoroutine(YPositionCoroutine(popup, popup.transform.position, amountY, 0.15f));
-                StartCoroutine(AlphaCoroutine(missPopupDots, 1.0f, 0.0f, 0.3f, 0.0f));
+                StartCoroutine(YPositionCoroutine(missPopupNote, missPopupNote.transform.position, amountY, 0.15f));
+                StartCoroutine(YPositionCoroutine(missPopupDots, missPopupDots.transform.position, amountY, 0.15f));
+                StartCoroutine(AlphaCoroutine(missPopupNote, 0.0f, 1.0f, 0.1f, 0.0f));
+                StartCoroutine(AlphaCoroutine(missPopupDots, 1.0f, 0.0f, 0.2f, 0.1f));
+                StartCoroutine(AlphaCoroutine(missPopupCircle, 1.0f, 0.0f, 0.1f, 0.0f));
+                break;
+            case PopType.POP_FIREWORKS:
+                RollFireworks();
                 break;
             case PopType.POP_EMPTY:
                 // No implementation
@@ -85,7 +94,10 @@ public class PoleBoxController : MonoBehaviour {
                 break;
         }
 
-        popup.SetActive(true);
+        if (popup != null)
+        {
+            popup.SetActive(true);
+        }
     }
 
     public void SetPlatform(PlatformType type)
@@ -130,10 +142,13 @@ public class PoleBoxController : MonoBehaviour {
 
     public void DestroyPoleBox()
     {
+        if (popup != null)
+        {
+            StartCoroutine(AlphaCoroutine(popup, 1.0f, 0.0f, 1.0f, 0.0f));
+        }
         StartCoroutine(AlphaCoroutine(poleBox, 1.0f, 0.0f, 1.0f, 0.0f));
-        StartCoroutine(AlphaCoroutine(popup, 1.0f, 0.0f, 1.0f, 0.0f));
         StartCoroutine(AlphaCoroutine(platform, 1.0f, 0.0f, 1.0f, 0.5f));
-        StartCoroutine(DestroyCoroutine());
+        StartCoroutine(DestroyPoleBoxCoroutine());
     }
 
     // TODO(jaween): Clean up this repeated code
@@ -176,6 +191,7 @@ public class PoleBoxController : MonoBehaviour {
             interpolant = (Time.time - startTime) * 3.0f;
             yield return new WaitForEndOfFrame();
         }
+        gameObject.SetActive(false);
     }
     
     // TODO(jaween): Make interfaces for alpha and yposition coroutines more similar
@@ -187,15 +203,17 @@ public class PoleBoxController : MonoBehaviour {
         float startTime = Time.time;
         float interpolant = 0;
 
-        while (true)
+        // TODO(jaween): What causes the NullReferenceException here?
+        // It could be that the gameObject has been destroyed outside of this coroutine?
+        // Solve the problem and remove the '&& gameObject != null' part
+        while (true && gameObject != null)
         {
             // Fades in/out this GameObject and its children
-            // TODO(jaween): What causes the NullReferenceException here when lower the platforms?
             var renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
             foreach (var renderer in renderers)
             {
                 Color color = renderer.material.color;
-                if (color.a == 0 && from > color.a)
+                if (color.a == 0 && to == 0)
                 {
                     // If the child is already fully invisible when fading out don't make it visible
                     continue;
@@ -233,9 +251,10 @@ public class PoleBoxController : MonoBehaviour {
         }
     }
 
-    private IEnumerator DestroyCoroutine()
+    private IEnumerator DestroyPoleBoxCoroutine()
     {
         yield return new WaitForSeconds(2.0f);
+        StopAllCoroutines();
         Destroy(gameObject);
     }
 }
