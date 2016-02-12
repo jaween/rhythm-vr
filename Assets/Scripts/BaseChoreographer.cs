@@ -7,7 +7,6 @@ using System;
 public abstract class BaseChoreographer : MonoBehaviour 
 {
     public AudioSource musicAudioSource;
-    public AudioSource soundEffectsAudioSource;
     public AudioClip music;
     public TextAsset timingsTextAsset;
     public bool showDebugTimingResults = true;

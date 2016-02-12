@@ -9,7 +9,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private Animator animator;
     private bool isRunning = true;
     private bool isJumping = false;
-    private bool isSuperJumping = false;
+    private bool isHighJumping = false;
     private bool isStuntedJumping = false;
     private bool isRolling = false;
     private bool isGrabbing = false;
@@ -47,15 +47,15 @@ public class NightWalkCharacterController : MonoBehaviour
         if (isJumping)
         {
             float airTime = Time.time - jumpStartTime;
-            const float regularJumpAirTime = 0.5f;
-            const float superJumpAirTime = 0.7f;
+            const float regularJumpAirTime = 0.542f;
+            const float highJumpAirTime = 0.800f;
             const float stuntedJumpAirTime = 0.3f;
             const float degreesPerJump = 180.0f;
 
             float jumpMultiplier = 1;
-            if (isSuperJumping)
+            if (isHighJumping)
             {
-                ratioOfJump = airTime / superJumpAirTime;
+                ratioOfJump = airTime / highJumpAirTime;
                 jumpMultiplier = 2.4f;
             }
             else if (isStuntedJumping)
@@ -77,7 +77,7 @@ public class NightWalkCharacterController : MonoBehaviour
                 newPosition.y = groundY;
                 ratioOfJump = 0;
                 isJumping = false;
-                isSuperJumping = false;
+                isHighJumping = false;
                 isStuntedJumping = false;
                 animator.SetBool("IsJumping", isJumping);
             }
@@ -98,10 +98,10 @@ public class NightWalkCharacterController : MonoBehaviour
         }
     }
 
-    public bool IsReadyForAction()
+    public bool IsReadyForNextAction()
     {
         bool ready = false;
-        if (!isRolling && (!isJumping || ratioOfJump >= nextJumpThreshold))
+        if (!isJumping || ratioOfJump >= nextJumpThreshold)
         {
             ready = true;
         }
@@ -119,58 +119,54 @@ public class NightWalkCharacterController : MonoBehaviour
     private const float nextJumpThreshold = 0.8f;
     private const float nextRollThreshold = 0.95f;
 
-    // TODO(jaween): Change the inteface for doing different jumps
-    public bool Jump(bool superJump, bool stuntedJump)
+    private void JumpInternal()
     {
-        bool jumped = false;
-        if (IsReadyForAction())
-        {
-            jumpWithLeftArm = !jumpWithLeftArm;
-            jumpStartTime = Time.time;
-            isJumping = true;
-            isRolling = false;
-            isSuperJumping = superJump;
-            isStuntedJumping = stuntedJump;
-            jumpMask.SetActive(superJump);
-            animator.SetTrigger("StartJumpTrigger");
-            if (superJump)
-            {
-                StartCoroutine(HideJumpMask());
-            }
-            jumped = true;
-        }
-
-        return jumped;
+        jumpWithLeftArm = !jumpWithLeftArm;
+        jumpStartTime = Time.time;
+        isJumping = true;
+        isRolling = false;
+        animator.SetTrigger("StartJumpTrigger");
     }
 
-    public bool Roll()
+    public void Jump()
     {
-        bool rolled = false;
-        if (IsReadyForAction())
+        if (IsReadyForNextAction())
+        {
+            JumpInternal();
+            isHighJumping = false;
+        }
+    }
+
+    public void HighJump()
+    {
+        if (IsReadyForNextAction())
+        {
+            JumpInternal();
+            isHighJumping = true;
+            jumpMask.SetActive(true);
+            rollAngle = 0;
+            StartCoroutine(HideJumpMask());
+        }
+    }
+
+    public void StuntedJump()
+    {
+        if (IsReadyForNextAction())
+        {
+            JumpInternal();
+            isStuntedJumping = true;
+        }
+    }
+
+    public void Roll()
+    {
+        if (IsReadyForNextAction())
         {
             isJumping = false;
             isRolling = true;
-            animator.SetTrigger("StartRollTrigger");
-            rolled = true;
-        }
-
-        return rolled;
-    }
-
-    public bool EndRoll()
-    {
-        bool endRolled = false;
-        if (isRolling)
-        {
             rollAngle = 0;
-            isRolling = false;
-            bool superJump = true;
-            bool stuntedJump = false;
-            Jump(superJump, stuntedJump);
-            endRolled = true;
+            animator.SetTrigger("StartRollTrigger");
         }
-
-        return endRolled;
     }
 
     public void Fall()

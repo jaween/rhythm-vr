@@ -57,7 +57,7 @@ public class PoleBoxController : MonoBehaviour {
                 float amountY = (toPosition - fromPosition).y;
 
                 // Start animations
-                fireworksController.CreateFireworks(rollFireworks);
+                fireworksController.StartFireworks(rollFireworks);
                 StartCoroutine(YPositionCoroutine(popup, popup.transform.position, amountY, 0.3f));
                 StartCoroutine(AlphaCoroutine(popup, 1.0f, 0.0f, 1.0f, 0.0f));
                 break;
@@ -65,6 +65,7 @@ public class PoleBoxController : MonoBehaviour {
                 popup = badPopup;
                 const float amountHeart = 0.8f;
                 const float amountWord = 0.4f;
+                fireworksController.DestroyFireworks();
 
                 // Start animations
                 StartCoroutine(YPositionCoroutine(badPopupHeart, popup.transform.position, amountHeart, 0.25f));
@@ -75,6 +76,7 @@ public class PoleBoxController : MonoBehaviour {
             case PopType.POP_MISS:
                 popup = missPopup;
                 amountY = 0.2f;
+                fireworksController.DestroyFireworks();
 
                 // Start animations
                 StartCoroutine(YPositionCoroutine(missPopupNote, missPopupNote.transform.position, amountY, 0.15f));
@@ -87,7 +89,7 @@ public class PoleBoxController : MonoBehaviour {
                 RollFireworks();
                 break;
             case PopType.POP_EMPTY:
-                // No implementation
+                fireworksController.DestroyFireworks();
                 break;
             default:
                 Debug.Log("Unknown pop type " + popType);
@@ -137,7 +139,7 @@ public class PoleBoxController : MonoBehaviour {
     public void RollFireworks()
     {
         bool rollFireworks = true;
-        fireworksController.CreateFireworks(rollFireworks);
+        fireworksController.StartFireworks(rollFireworks);
     }
 
     public void DestroyPoleBox()

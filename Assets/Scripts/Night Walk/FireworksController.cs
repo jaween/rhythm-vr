@@ -2,103 +2,104 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class FireworksController : MonoBehaviour {
-
-    public GameObject fireworkPrefab;
-    public GameObject[] rollFireworkPrefabs;
+public class FireworksController : MonoBehaviour
+{
+    public GameObject fireworksNode;
     public GameObject rollFireworksNode;
     public float radius;
 
     private bool createdFireworks = false;
-    private List<GameObject> fireworks = new List<GameObject>();
     private const int fireworksPerLayer = 16;
-    private bool rollFireworks = false;
-
-    public void CreateFireworks(bool roll)
-    {
-        createdFireworks = true;
-
-        int layerCount = 1;
-        if (roll)
-        {
-            layerCount = rollFireworkPrefabs.Length;
-        }
-
-        for (var layer = 0; layer < layerCount; layer++)
-        {
-            Vector3 position = transform.position;
-            GameObject prefab = fireworkPrefab;
-            if (roll)
-            {
-                position = rollFireworksNode.transform.position;
-                prefab = rollFireworkPrefabs[layer];
-            }
-            for (var i = 0; i < fireworksPerLayer; i++)
-            {
-                const float angleDeltaDegrees = 360.0f / fireworksPerLayer;
-                Quaternion relativeRotation = Quaternion.AngleAxis(90 + angleDeltaDegrees * i, Vector3.forward);
-                GameObject firework = (GameObject)Instantiate(
-                    prefab, position, transform.rotation * relativeRotation);
-                firework.transform.parent = transform;
-                fireworks.Add(firework);
-            }
-        }
-        rollFireworks = roll;
-
-        StartCoroutine(UpdateFireworksCoroutine());
-    }
     
+    public void StartFireworks(bool roll)
+    {
+        StartCoroutine(UpdateFireworksCoroutine(roll));
+    }
+
     // TODO(jaween): Clean up and merge duplicate code with the PoleBoxController
-	private IEnumerator UpdateFireworksCoroutine() 
+    private IEnumerator UpdateFireworksCoroutine(bool roll) 
     {
         float startTime = Time.time;
-        float duration = rollFireworks ? 4.0f : 0.8f;
-        int layerCount = rollFireworks ? 3 : 1;
-        Vector3 nodePosition = transform.position;
-        float interpolant = 0;
-        while (true)
+        float duration = roll ? 4.0f : 1.0f;
+        Vector3 offset = Vector3.zero;
+        float positionInterpolant = 0.0f;
+        float alphaInterpolant = 0.0f;
+        const float angleDelta = 360.0f / fireworksPerLayer * Mathf.Deg2Rad;
+
+        // Gets the relevent fireworks to animate
+        List<GameObject> fireworks = new List<GameObject>();
+        Vector3 startingPosition;
+        Transform node;
+        if (roll)
         {
-            const float angleDelta = 360.0f / fireworksPerLayer * Mathf.Deg2Rad;
-            float newRadius = radius;
+            rollFireworksNode.SetActive(true);
+            node = rollFireworksNode.transform;
+            startingPosition = rollFireworksNode.transform.position;
+        } else
+        {
+            fireworksNode.SetActive(true);
+            node = fireworksNode.transform;
+            startingPosition = fireworksNode.transform.position;
+        }
 
-            nodePosition = rollFireworks ? rollFireworksNode.transform.position : nodePosition;
-            if (rollFireworks) 
-            { 
-                nodePosition.y -= 3 * interpolant;
-            }
+        for (var i = 0; i < node.childCount; i++)
+        {
+            Transform fireworkTransform = node.GetChild(i);
+            GameObject firework = fireworkTransform.gameObject;
+            float angleDeltaDegrees = 360 / fireworksPerLayer;
+            firework.transform.rotation *= 
+                Quaternion.AngleAxis(90 + angleDeltaDegrees * i, 
+                Vector3.forward);
+            fireworks.Add(firework.gameObject);
+        }
 
-            for (int layer = 0; layer < layerCount; layer++)
+        float ellapsedRatio = 0;
+        while (ellapsedRatio <= 1)
+        {
+            if (roll) 
             {
-                if (rollFireworks)
-                {
-                    newRadius = (layer + 1) * radius / 2.0f;
-                }
-                for (var i = 0; i < fireworksPerLayer; i++)
-                {
-                    GameObject firework = fireworks[fireworksPerLayer * layer + i];
-
-                    // Fly out
-                    Vector3 direction = transform.right * Mathf.Cos(angleDelta * i) +
-                        transform.up * Mathf.Sin(angleDelta * i);
-                    direction = Vector3.Normalize(direction);
-                    Vector3 fromPosition = firework.transform.position;
-                    Vector3 toPosition = nodePosition + direction * newRadius;
-                    firework.transform.position = Vector3.Lerp(
-                        fromPosition, toPosition, interpolant);
-
-                    // Fade
-                    SpriteRenderer renderer = firework.GetComponent<SpriteRenderer>();
-                    Color color = renderer.material.color;
-                    color.a = Mathf.Lerp(color.a, 0.0f, interpolant);
-                    renderer.material.color = color;
-                }
+                startingPosition = rollFireworksNode.transform.position +
+                    Vector3.up * -5 * alphaInterpolant;
             }
-            if (interpolant >= 1)
+
+            
+            for (var i = 0; i < fireworks.Count; i++)
             {
-                break;
+                GameObject firework = fireworks[i];
+
+                // Determines the starting position of the roll fireworks
+                float divisor = (int)(i / fireworksPerLayer);
+                float ratio = divisor != 0 ? fireworks.Count / divisor : 0;
+                float newRadius = radius + radius * 0.05f * ratio;
+
+                // Fly out
+                float angle = angleDelta * i;
+                Vector3 direction = transform.right * Mathf.Cos(angle) +
+                    transform.up * Mathf.Sin(angle);
+                Vector3 fromPosition = startingPosition;
+                Vector3 toPosition = startingPosition + direction * newRadius;
+                firework.transform.position = Vector3.Lerp(
+                    fromPosition, toPosition, positionInterpolant);
+
+                // Fade
+                SpriteRenderer renderer = firework.GetComponent<SpriteRenderer>();
+                Color color = renderer.material.color;
+                color.a = Mathf.Lerp(color.a, 0.0f, alphaInterpolant);
+                renderer.material.color = color;
             }
-            interpolant = (Time.time - startTime) / duration;
+
+            float ellapsedTime = Time.time - startTime;
+            ellapsedRatio = ellapsedTime/duration;
+            positionInterpolant = Mathf.Sin(ellapsedRatio * Mathf.PI / 2);
+            alphaInterpolant = ellapsedTime * ellapsedTime / duration;
             yield return new WaitForEndOfFrame();
         }
-	}
+        DestroyFireworks();
+    }
+
+    public void DestroyFireworks()
+    {
+        Destroy(fireworksNode);
+        Destroy(rollFireworksNode);
+    }
 }

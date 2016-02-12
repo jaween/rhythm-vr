@@ -10,11 +10,16 @@ public class NightWalkChoreograhper : BaseChoreographer
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public Slider slider;
+    public AudioSource attemptAudioSource;
+    public AudioSource rollAAudioSource;
+    public AudioSource rollBAudioSource;
     public AudioClip attemptGoodA;
     public AudioClip attemptGoodB;
     public AudioClip attemptBad;
-    public AudioClip doubleBeat;
-    public AudioSource tempAudioSourceB;
+    public AudioClip attemptMiss;
+    public AudioClip attemptNoBeat;
+    public AudioClip rollA;
+    public AudioClip rollB;
     public float jumpHeight = 1;
     public float groundY;
 
@@ -37,7 +42,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         timingsManager = new TimingsManager(timingsTextAsset, new NightWalkTriggers());
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = 6;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
+        debugMusicStartOffset = 0;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
         musicAudioSource.time = debugMusicStartOffset;
         musicAudioSource.pitch = Time.timeScale;
 
@@ -60,13 +65,13 @@ public class NightWalkChoreograhper : BaseChoreographer
         switch (playerAction)
         {
             case PlayerAction.MOTION_NOD:
-                if (characterController.IsReadyForAction())
+                if (characterController.IsReadyForNextAction())
                 {
                     playerMadeAnAttempt = true;
                 }
                 break;
             case PlayerAction.MOTION_DEEP_NOD_DOWN:
-                if (characterController.IsReadyForAction())
+                if (characterController.IsReadyForNextAction())
                 {
                     playerMadeAnAttempt = true;
                 }
@@ -130,7 +135,7 @@ public class NightWalkChoreograhper : BaseChoreographer
                     // TODO(jaween): Implement
                     break;
                 case NightWalkTriggers.ROLL_AUDIO:
-                    tempAudioSourceB.Play();
+                    rollAAudioSource.Play();
                     PoleBoxController poleBox;
                     if (GetNextPoleBox(0, true, out poleBox))
                     {
@@ -141,17 +146,8 @@ public class NightWalkChoreograhper : BaseChoreographer
                         poleBox.RollSpinEffects(false);
                     }
                     break;
-                case 3:
-                    // No implementation
-                    break;
-                case 4:
-                    // No implementation
-                    break;
-                case 5:
-                    // No implmentation
-                    break;
-                case 6:
-                    // No implementation
+                case NightWalkTriggers.END_ROLL:
+                    //rollBAudioSource.Play();
                     break;
             }
         }
@@ -164,11 +160,13 @@ public class NightWalkChoreograhper : BaseChoreographer
         {
             case PoleBoxController.PopType.POP_GOOD:
             case PoleBoxController.PopType.POP_FIREWORKS:
-                TempPlayGoodAttemptSound();
+                PlayAttemptSound(TimingsManager.TimingResult.GOOD);
                 break;
             case PoleBoxController.PopType.POP_BAD:
+                PlayAttemptSound(TimingsManager.TimingResult.BAD);
+                break;
             case PoleBoxController.PopType.POP_MISS:
-                TempPlayBadAttemptSound();
+                PlayAttemptSound(TimingsManager.TimingResult.MISS);
                 break;
         }
 
@@ -190,13 +188,21 @@ public class NightWalkChoreograhper : BaseChoreographer
             if (playerAction == PlayerAction.MOTION_NOD)
             {
                 actionWasSuccess = true;
-                characterController.Jump(false, false);
+                characterController.Jump();
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_GOOD);
             }
             else
             {
-                characterController.Jump(false, true);
+                // Rolls can be initiated any time
+                if (playerAction == PlayerAction.MOTION_DEEP_NOD_DOWN)
+                {
+                    characterController.Roll();
+                }
+                else
+                { 
+                    characterController.StuntedJump();
+                }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
             }
@@ -214,7 +220,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             {
                 if (playerAction == PlayerAction.MOTION_NOD)
                 {
-                    characterController.Jump(false, true);
+                    characterController.StuntedJump();
                 }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
@@ -225,14 +231,24 @@ public class NightWalkChoreograhper : BaseChoreographer
             if (playerAction == PlayerAction.MOTION_DEEP_NOD_UP)
             {
                 actionWasSuccess = true;
-                characterController.EndRoll();
-                PopPoleBoxAndPlayAudio(poleBox, 
-                    PoleBoxController.PopType.POP_FIREWORKS);
+                characterController.HighJump();
+                if (poleBox != null)
+                {
+                    poleBox.Pop(PoleBoxController.PopType.POP_FIREWORKS);
+                }
+                rollBAudioSource.Play();
             }
             else
             {
-                // TODO(jaween): End roll negatively
-                characterController.EndRoll();
+                // Rolls can be initiated any time
+                if (playerAction == PlayerAction.MOTION_DEEP_NOD_DOWN)
+                {
+                    characterController.Roll();
+                }
+                else
+                {
+                    characterController.StuntedJump();
+                }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
             }
@@ -267,13 +283,21 @@ public class NightWalkChoreograhper : BaseChoreographer
             if (playerAction == PlayerAction.MOTION_NOD)
             {
                 actionWasSuccess = true;
-                characterController.Jump(false, false);
+                characterController.Jump();
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_BAD);
             }
             else
             {
-                characterController.Jump(false, true);
+                // Rolls can be initiated any time
+                if (playerAction == PlayerAction.MOTION_DEEP_NOD_DOWN)
+                {
+                    characterController.Roll();
+                }
+                else
+                {
+                    characterController.StuntedJump();
+                }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
             }
@@ -291,7 +315,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             {
                 if (playerAction == PlayerAction.MOTION_NOD)
                 {
-                    characterController.Jump(false, true);
+                    characterController.StuntedJump();
                 }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
@@ -301,16 +325,24 @@ public class NightWalkChoreograhper : BaseChoreographer
         {
             if (playerAction == PlayerAction.MOTION_DEEP_NOD_UP)
             {
-                // TODO(jaween): No fireworks?
+                // TODO(jaween): Is this correct bad end roll? No sound and a stunted jump?
                 actionWasSuccess = true;
-                characterController.EndRoll();
+                characterController.StuntedJump();
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_EMPTY);
             }
             else
             {
                 // TODO(jaween): End roll negatively
-                characterController.EndRoll();
+                // Rolls can be initiated any time
+                if (playerAction == PlayerAction.MOTION_DEEP_NOD_DOWN)
+                {
+                    characterController.Roll();
+                }
+                else
+                {
+                    characterController.StuntedJump();
+                }
                 PopPoleBoxAndPlayAudio(poleBox, 
                     PoleBoxController.PopType.POP_MISS);
             }
@@ -338,13 +370,22 @@ public class NightWalkChoreograhper : BaseChoreographer
         PoleBoxController poleBox;
         if (GetNextPoleBox(-1, false, out poleBox))
         {
-            PopPoleBoxAndPlayAudio(poleBox,
+            if (triggers.Contains(NightWalkTriggers.START_ROLL))
+            {
+                PopPoleBoxAndPlayAudio(poleBox,
+                PoleBoxController.PopType.POP_EMPTY);
+            }
+            else if (triggers.Contains(NightWalkTriggers.END_ROLL))
+            {
+                PopPoleBoxAndPlayAudio(poleBox,
                 PoleBoxController.PopType.POP_MISS);
+            }
+            else
+            {
+                PopPoleBoxAndPlayAudio(poleBox,
+                    PoleBoxController.PopType.POP_MISS);
+            }
         }
-
-        // TODO(jaween): End roll unsucessfully
-        // Just trying to avoid being stuck rolling
-        characterController.EndRoll();
 
         // Game over player one
         if (triggers.Contains(NightWalkTriggers.RAISES))
@@ -355,11 +396,18 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     private void TimingResultNoBeat(PlayerAction playerAction)
     {
-        if (playerAction == PlayerAction.MOTION_DEEP_NOD_UP ||
-            playerAction == PlayerAction.MOTION_NOD)
+        if (playerAction != PlayerAction.NONE)
         {
-            characterController.Jump(false, true);
-            TempPlayBadAttemptSound();
+            // Rolls can be initiated any time
+            if (playerAction == PlayerAction.MOTION_DEEP_NOD_DOWN)
+            {
+                characterController.Roll();
+            }
+            else
+            {
+                characterController.StuntedJump();
+                PlayAttemptSound(TimingsManager.TimingResult.NO_BEAT);
+            }
         }
     }
 
@@ -412,7 +460,9 @@ public class NightWalkChoreograhper : BaseChoreographer
         if (nextIndexToInstantiate < timingsManager.Timings.Count)
         {
             TimingsManager.Timing timing = timingsManager.Timings[nextIndexToInstantiate];
-            if (timing.triggers.Contains(NightWalkTriggers.POP))
+            if (!timing.triggers.Contains(NightWalkTriggers.BEAT) &&
+                !timing.triggers.Contains(NightWalkTriggers.START_ROLL) &&
+                !timing.triggers.Contains(NightWalkTriggers.END_ROLL))
             {
                 nextIndexToInstantiate++;
                 return;
@@ -507,19 +557,27 @@ public class NightWalkChoreograhper : BaseChoreographer
         poleBoxes.Remove(timing);
     }
     
-    private void TempPlayGoodAttemptSound()
+    private void PlayAttemptSound(TimingsManager.TimingResult timingResult)
     {
-        AudioClip clip;
-        clip = audioIsOnUpBeat == true ? attemptGoodA : attemptGoodB;
-        audioIsOnUpBeat = !audioIsOnUpBeat;
-        soundEffectsAudioSource.clip = clip;
-        soundEffectsAudioSource.Play();
-    }
-
-    private void TempPlayBadAttemptSound()
-    {
-        soundEffectsAudioSource.clip = attemptBad;
-        soundEffectsAudioSource.Play();
+        AudioClip clip = attemptNoBeat;
+        switch (timingResult)
+        {
+            case TimingsManager.TimingResult.GOOD:
+                clip = audioIsOnUpBeat == true ? attemptGoodA : attemptGoodB;
+                audioIsOnUpBeat = !audioIsOnUpBeat;
+                break;
+            case TimingsManager.TimingResult.BAD:
+                clip = attemptBad;
+                break;
+            case TimingsManager.TimingResult.MISS:
+                clip = attemptMiss;
+                break;
+            case TimingsManager.TimingResult.NO_BEAT:
+                clip = attemptNoBeat;
+                break;
+        }
+        attemptAudioSource.clip = clip;
+        attemptAudioSource.Play();
     }
 
     private IEnumerator Restart()

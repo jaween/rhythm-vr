@@ -109,7 +109,7 @@ public class CardboardHeadController : MonoBehaviour
             isDeepNodding = false;
             choreographer.InputAction(BaseChoreographer.PlayerAction.MOTION_DEEP_NOD_UP);
         }
-        else if (angle >= deepNodDownAngle)
+        else if (angle >= deepNodDownAngle && !isDeepNodding)
         {
             // Deep nod down
             isDeepNodding = true;
