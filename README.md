@@ -16,17 +16,11 @@ Complete
 
 To do
 -----
- * Add title sequence
  * Add tutorial sequence
- * Add intro balloon sequence
  * Add a nicer falling sequence
  * Add end game sequence
  * Add support for other VR headsets
  * Tweak the timings (specifically super-jump beats)
  * Cleanup code duplication (specifically around procedural animations)
- * Fix the character doing a stunted jump on the off beats
- * Fix beats requiring specific input to succeed
  * Fix ledge grabbing position/animation
- * Fix double beat boxes not opening
- * Fix bad attempt animation
  * Fix fade in of platforms

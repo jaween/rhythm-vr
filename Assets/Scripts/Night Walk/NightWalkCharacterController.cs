@@ -3,8 +3,10 @@ using System.Collections;
 
 public class NightWalkCharacterController : MonoBehaviour
 {
-    public float jumpHeight;
     public GameObject jumpMask;
+    public GameObject[] balloons;
+    public GameObject[] pops;
+    public GameObject groundNode;
 
     private Animator animator;
     private bool isRunning = true;
@@ -13,6 +15,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private bool isStuntedJumping = false;
     private bool isRolling = false;
     private bool isGrabbing = false;
+    private bool isFallingFromBalloons = false;
     private bool jumpWithLeftArm = false;
     private float jumpStartTime;
     private float angle = 90 * Mathf.Deg2Rad;
@@ -20,12 +23,15 @@ public class NightWalkCharacterController : MonoBehaviour
     private float ratioOfJump = 0;
     private float groundY;
     private float radius;
-    
+    private int popIndex = 0;
+    private float startY;
+    private bool startedRunning = false;
+
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
-        groundY = transform.position.y;
         radius = transform.position.z;
+        startY = transform.position.y;
     }
 
     private void Update()
@@ -44,12 +50,13 @@ public class NightWalkCharacterController : MonoBehaviour
             newPosition.z = Mathf.Sin(angle) * radius;
         }
 
-        if (isJumping)
+        if (isJumping || isFallingFromBalloons)
         {
             float airTime = Time.time - jumpStartTime;
             const float regularJumpAirTime = 0.542f;
             const float highJumpAirTime = 0.800f;
             const float stuntedJumpAirTime = 0.3f;
+            const float fallingFromBalloonsAirTime = 0.6f;
             const float degreesPerJump = 180.0f;
 
             float jumpMultiplier = 1;
@@ -63,14 +70,29 @@ public class NightWalkCharacterController : MonoBehaviour
                 ratioOfJump = airTime / stuntedJumpAirTime;
                 jumpMultiplier = 0.3f;
             }
+            else if (isFallingFromBalloons)
+            {
+                ratioOfJump = airTime / fallingFromBalloonsAirTime;
+            }
             else
             {
                 ratioOfJump = airTime / regularJumpAirTime;
             }
-            
-            float jumpCurve = Mathf.Sin(ratioOfJump * degreesPerJump * Mathf.Deg2Rad);
-            float heightAboveGround = jumpHeight * jumpMultiplier * jumpCurve;
-            newPosition.y = groundY + heightAboveGround;
+
+            float jumpCurve;
+            float heightAboveGround;
+            if (!isFallingFromBalloons)
+            {
+                jumpCurve = Mathf.Sin(ratioOfJump * degreesPerJump * Mathf.Deg2Rad);
+                heightAboveGround = jumpMultiplier * jumpCurve;
+                newPosition.y = groundY + heightAboveGround;
+            } 
+            else
+            {
+                jumpCurve = -Mathf.Pow(2.5f  * ratioOfJump - 0.5f, 2) + 0.25f;
+                heightAboveGround = transform.position.y - groundY;
+                newPosition.y = startY + jumpCurve;
+            }
 
             if (heightAboveGround < 0)
             {
@@ -79,12 +101,17 @@ public class NightWalkCharacterController : MonoBehaviour
                 isJumping = false;
                 isHighJumping = false;
                 isStuntedJumping = false;
-                animator.SetBool("IsJumping", isJumping);
+                if (isFallingFromBalloons)
+                {
+                    isFallingFromBalloons = false;
+                    startedRunning = true;
+                }
             }
         }
         else if (isRolling)
         {
-            const float rollingHeightAboveGround = 0.2f;
+            // TODO(jaween): Fix the cause so this isn't needed
+            const float rollingHeightAboveGround = 0.3f;
             newPosition.y = groundY - rollingHeightAboveGround;
         }
 
@@ -106,6 +133,18 @@ public class NightWalkCharacterController : MonoBehaviour
             ready = true;
         }
         return ready;
+    }
+
+    public void Pop()
+    {
+        StartCoroutine(PopCoroutine(popIndex));
+        popIndex++;
+
+        if (popIndex == balloons.Length)
+        {
+            isFallingFromBalloons = true;
+            jumpStartTime = Time.time;
+        }
     }
 
     public bool IsRolling()
@@ -134,6 +173,7 @@ public class NightWalkCharacterController : MonoBehaviour
         {
             JumpInternal();
             isHighJumping = false;
+            isFallingFromBalloons = false;
         }
     }
 
@@ -199,6 +239,20 @@ public class NightWalkCharacterController : MonoBehaviour
         jumpMask.SetActive(false);
     }
 
+    private IEnumerator PopCoroutine(int index)
+    {
+        balloons[index].SetActive(false);
+        pops[index].SetActive(true);
+        yield return new WaitForEndOfFrame();
+
+        pops[index].SetActive(false);
+    }
+
+    public bool StartedRunning
+    {
+        get { return startedRunning; }
+    }
+
     private void UpdateAnimations()
     {
         animator.SetBool("IsJumping", isJumping);
@@ -206,5 +260,6 @@ public class NightWalkCharacterController : MonoBehaviour
         animator.SetBool("LeftArm", jumpWithLeftArm);
         animator.SetBool("IsGrabbing", isGrabbing);
         animator.SetBool("IsStuntedJumping", isStuntedJumping);
+        animator.SetBool("IsFallingFromBalloons", isFallingFromBalloons);
     }
 }

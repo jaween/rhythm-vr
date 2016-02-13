@@ -9,6 +9,7 @@ public class NightWalkChoreograhper : BaseChoreographer
 {
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
+    public GameObject groundNode;
     public Slider slider;
     public ScreenFader fader;
     public AudioSource attemptAudioSource;
@@ -35,8 +36,9 @@ public class NightWalkChoreograhper : BaseChoreographer
     private const float shortBeatThreshold = 0.3f;
     private float newPoleHeight = 0;
     private float raiseHeight = 0.7f;
-    private bool controllableState = true;
-
+    private bool controllableState = false;
+    private bool gameOver = false;
+    
     protected override void Initialise() 
     {
         // Loads the timings
@@ -47,7 +49,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         musicAudioSource.time = debugMusicStartOffset;
         musicAudioSource.pitch = Time.timeScale;
 
-        groundY = characterController.transform.position.y - 0.5f;
+        groundY = groundNode.transform.position.y;
         characterRadius = characterController.transform.position.z;
 
         // Debug UI
@@ -103,6 +105,12 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     protected override void GameUpdate()
     {
+        // TODO(jaween): Replace this with something good and sane
+        if (characterController.StartedRunning && !gameOver)
+        {
+            controllableState = true;
+        }
+
         CreateAndDestroyPoles();
 
         // Update debug UI
@@ -138,7 +146,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             // TODO(jaween): Replace with enums or class of const ints
             switch (trigger) {
                 case NightWalkTriggers.POP:
-                    // TODO(jaween): Implement
+                    characterController.Pop();
                     break;
                 case NightWalkTriggers.ROLL_AUDIO:
                     rollAAudioSource.Play();
@@ -158,7 +166,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             }
         }
     }
-
+    
     private void PopPoleBoxAndPlayAudio(PoleBoxController poleBox, 
         PoleBoxController.PopType popupType)
     {
@@ -419,6 +427,7 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     private void GameOver()
     {
+        gameOver = true;
         musicAudioSource.Stop();
         characterController.Fall();
         controllableState = false;
