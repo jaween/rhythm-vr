@@ -15,7 +15,9 @@ public static class TimingsParser {
         timings = new List<TimingsManager.Timing>();
 
         previousTime = 0;
-        var lines = text.Replace(" ", "").Replace("\r", "").Split(lineDelimiters);
+        var lines = text.Replace(", ", ",")
+                        .Replace(" ", "_")
+                        .Replace("\r", "").Split(lineDelimiters);
         foreach (var line in lines)
         {
             var tokens = line.Split(tokenDelimeters);

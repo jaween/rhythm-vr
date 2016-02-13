@@ -17,6 +17,8 @@ public class CardboardHeadController : MonoBehaviour
     private bool updated;
     private BaseChoreographer.PlayerAction debugStoredAction =
         BaseChoreographer.PlayerAction.NONE;
+    private int frameNumber = 0;
+    private float startTime;
 
     public Ray Gaze
     {
@@ -38,6 +40,8 @@ public class CardboardHeadController : MonoBehaviour
         startRotation = Quaternion.LookRotation(transform.forward);
 
         lastNodTime = Time.time;
+        startTime = Time.time;
+
     }
 
     private void Update()
@@ -49,6 +53,15 @@ public class CardboardHeadController : MonoBehaviour
         }
 
         DebugInput();
+
+        frameNumber++;
+        float time = Time.time - startTime;
+        debugText.text = ((float) frameNumber / time) + "fps";
+        if (time > 1.0f)
+        {
+            startTime = Time.time;
+            frameNumber = 0;
+        }
     }
 
     // Normally, update head pose now.

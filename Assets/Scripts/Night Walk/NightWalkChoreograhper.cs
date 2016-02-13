@@ -10,6 +10,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public Slider slider;
+    public ScreenFader fader;
     public AudioSource attemptAudioSource;
     public AudioSource rollAAudioSource;
     public AudioSource rollBAudioSource;
@@ -52,6 +53,11 @@ public class NightWalkChoreograhper : BaseChoreographer
         // Debug UI
         slider.maxValue = musicAudioSource.clip.length;
         slider.minValue = 0;
+
+        // Screen fade in
+        bool fadeFromBlack = true;
+        float duration = 2.0f;
+        fader.Fade(fadeFromBlack, duration);
     }
 
     protected override void HandleInput(PlayerAction playerAction)
