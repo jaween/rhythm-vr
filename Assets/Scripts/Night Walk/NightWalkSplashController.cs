@@ -8,13 +8,19 @@ public class NightWalkSplashController : MonoBehaviour {
     public Text infoText;
     public RawImage fadingImage;
     public ScreenFader fader;
+    public AudioClip clickAudio;
 
     private bool clicked = false;
     private bool faded = false;
 
-	private void Start () {
+	private void Start ()
+    {
         SetTextAlpha(infoText, 0.0f);
         StartCoroutine(SplashCoroutine());
+
+        bool fadeFromBlack = true;
+        float duration = 1.0f;
+        fader.Fade(fadeFromBlack, duration);
 	}
 
     private void Update()
@@ -35,6 +41,9 @@ public class NightWalkSplashController : MonoBehaviour {
         {
             yield return new WaitForEndOfFrame();
         }
+        AudioSource audioSource = GetComponent<AudioSource>();
+        audioSource.clip = clickAudio;
+        audioSource.Play();
 
         Fade();
         while (!fader.Done)

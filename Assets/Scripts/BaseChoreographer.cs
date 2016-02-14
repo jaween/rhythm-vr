@@ -12,6 +12,8 @@ public abstract class BaseChoreographer : MonoBehaviour
     public bool showDebugTimingResults = true;
 
     protected TimingsManager timingsManager;
+    protected bool isCardboardTriggered = false;
+
     private PlayerAction storedPlayerAction = PlayerAction.NONE;
     private bool timingsHandled = false;
     
@@ -101,5 +103,10 @@ public abstract class BaseChoreographer : MonoBehaviour
     public void InputAction(PlayerAction playerAction)
     {
         storedPlayerAction = playerAction;
+    }
+
+    public bool CardboardTriggered
+    {
+        set { isCardboardTriggered = value; }
     }
 }

@@ -10,7 +10,6 @@ public class NightWalkChoreograhper : BaseChoreographer
     public PoleBoxController poleBoxPrefab;
     public NightWalkCharacterController characterController;
     public GameObject groundNode;
-    public Slider slider;
     public ScreenFader fader;
     public AudioSource attemptAudioSource;
     public AudioSource rollAAudioSource;
@@ -22,6 +21,9 @@ public class NightWalkChoreograhper : BaseChoreographer
     public AudioClip attemptNoBeat;
     public AudioClip rollA;
     public AudioClip rollB;
+    public AudioClip superb;
+    public AudioClip japaneseMusic;
+    public AudioClip englishMusic;
     public float jumpHeight = 1;
     public float groundY;
 
@@ -38,6 +40,11 @@ public class NightWalkChoreograhper : BaseChoreographer
     private float raiseHeight = 0.7f;
     private bool controllableState = false;
     private bool gameOver = false;
+    private bool gameComplete = false;
+    private bool englishAudio = true;
+    private int goodTimings = 0;
+    private int badTimings = 0;
+    private int missTimings = 0;
     
     protected override void Initialise() 
     {
@@ -45,21 +52,31 @@ public class NightWalkChoreograhper : BaseChoreographer
         timingsManager = new TimingsManager(timingsTextAsset, new NightWalkTriggers());
 
         // Saves time to skip the intro music when debugging
-        debugMusicStartOffset = 0;// timingsManager.Timings[timingsManager.NextPlayerTimingIndex].time - 3f;
+        debugMusicStartOffset = 0;
         musicAudioSource.time = debugMusicStartOffset;
         musicAudioSource.pitch = Time.timeScale;
 
         groundY = groundNode.transform.position.y;
         characterRadius = characterController.transform.position.z;
 
-        // Debug UI
-        slider.maxValue = musicAudioSource.clip.length;
-        slider.minValue = 0;
-
         // Screen fade in
         bool fadeFromBlack = true;
         float duration = 2.0f;
         fader.Fade(fadeFromBlack, duration);
+    }
+
+    private void Update()
+    {
+        // Switches audio between Japanese and English
+        if (isCardboardTriggered && controllableState && !gameComplete)
+        {
+            float audioTime = musicAudioSource.time;
+            englishAudio = !englishAudio;
+            musicAudioSource.Stop();
+            musicAudioSource.clip = englishAudio ? englishMusic : japaneseMusic;
+            musicAudioSource.time = audioTime;
+            musicAudioSource.Play();
+        }
     }
 
     protected override void HandleInput(PlayerAction playerAction)
@@ -112,9 +129,6 @@ public class NightWalkChoreograhper : BaseChoreographer
         }
 
         CreateAndDestroyPoles();
-
-        // Update debug UI
-        slider.value = musicAudioSource.time;
     }
 
     protected override void PlayerTimingResult(
@@ -160,8 +174,13 @@ public class NightWalkChoreograhper : BaseChoreographer
                         poleBox.RollSpinEffects(false);
                     }
                     break;
-                case NightWalkTriggers.END_ROLL:
-                    //rollBAudioSource.Play();
+                case NightWalkTriggers.COMPLETE:
+                    bool fadeFromBlack = false;
+                    float duration = 3.0f;
+                    fader.Fade(fadeFromBlack, duration);
+                    controllableState = false;
+                    gameComplete = true;
+                    StartCoroutine(GameCompleteCoroutine());
                     break;
             }
         }
@@ -283,6 +302,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         }
 
         // AddToScore(actionWasSucess);
+        goodTimings++;
     }
 
     private void TimingResultBad(List<int> triggers, PlayerAction playerAction)
@@ -339,11 +359,15 @@ public class NightWalkChoreograhper : BaseChoreographer
         {
             if (playerAction == PlayerAction.MOTION_DEEP_NOD_UP)
             {
-                // TODO(jaween): Is this correct bad end roll? No sound and a stunted jump?
+                // Showing the positive effects here just for feedback to the
+                // user that their gesture was successful
                 actionWasSuccess = true;
-                characterController.StuntedJump();
-                PopPoleBoxAndPlayAudio(poleBox, 
-                    PoleBoxController.PopType.POP_EMPTY);
+                characterController.HighJump();
+                if (poleBox != null)
+                {
+                    poleBox.Pop(PoleBoxController.PopType.POP_FIREWORKS);
+                }
+                rollBAudioSource.Play();
             }
             else
             {
@@ -377,6 +401,7 @@ public class NightWalkChoreograhper : BaseChoreographer
         }
 
         // AddToScore(actionWasSucess);
+        badTimings++;
     }
 
     private void TimingResultMiss(List<int> triggers)
@@ -387,17 +412,20 @@ public class NightWalkChoreograhper : BaseChoreographer
             if (triggers.Contains(NightWalkTriggers.START_ROLL))
             {
                 PopPoleBoxAndPlayAudio(poleBox,
-                PoleBoxController.PopType.POP_EMPTY);
+                    PoleBoxController.PopType.POP_EMPTY);
+                missTimings++;
             }
             else if (triggers.Contains(NightWalkTriggers.END_ROLL))
             {
                 PopPoleBoxAndPlayAudio(poleBox,
-                PoleBoxController.PopType.POP_MISS);
+                    PoleBoxController.PopType.POP_MISS);
+                missTimings++;
             }
             else
             {
                 PopPoleBoxAndPlayAudio(poleBox,
                     PoleBoxController.PopType.POP_MISS);
+                missTimings++;
             }
         }
 
@@ -428,7 +456,6 @@ public class NightWalkChoreograhper : BaseChoreographer
     private void GameOver()
     {
         gameOver = true;
-        musicAudioSource.Stop();
         characterController.Fall();
         controllableState = false;
         StartCoroutine(Restart());
@@ -467,7 +494,7 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     private void CreateAndDestroyPoles()
     {
-        const float secondsInAdvance = 6;
+        const float secondsInAdvance = 5;
         const float secondsBehind = 4;
         float leadingTime = musicAudioSource.time + secondsInAdvance;
         float laggingTime = musicAudioSource.time - secondsBehind;
@@ -496,7 +523,9 @@ public class NightWalkChoreograhper : BaseChoreographer
                     Mathf.Cos(angle) * characterRadius,
                     groundY + newPoleHeight,
                     Mathf.Sin(angle) * characterRadius);
-                Quaternion rotation = Quaternion.LookRotation(position, Vector3.up);
+                Vector3 lookForward = position;
+                lookForward.y = 0;
+                Quaternion rotation = Quaternion.LookRotation(lookForward, Vector3.up);
                 PoleBoxController poleBox = (PoleBoxController) Instantiate(
                     poleBoxPrefab, position, rotation);
 
@@ -597,7 +626,30 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     private IEnumerator Restart()
     {
-        yield return new WaitForSeconds(4.0f);
+        while (musicAudioSource.volume > 0.0f)
+        {
+            musicAudioSource.volume -= 0.02f;
+            yield return new WaitForEndOfFrame();
+        }
+        musicAudioSource.Stop();
+
+        bool fadeFromBlack = false;
+        float duration = 10.0f;
+        fader.Fade(fadeFromBlack, duration);
+        yield return new WaitForSeconds(2.0f);
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private IEnumerator GameCompleteCoroutine()
+    {
+        PlayerPrefs.SetInt("good", goodTimings);
+        PlayerPrefs.SetInt("bad", badTimings);
+        PlayerPrefs.SetInt("miss", missTimings);
+
+        yield return new WaitForSeconds(2.0f);
+
+        musicAudioSource.Stop();
+        SceneManager.LoadScene(2);
     }
 }

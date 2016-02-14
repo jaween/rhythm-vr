@@ -6,7 +6,6 @@ public class CardboardHeadController : MonoBehaviour
     public delegate void HeadUpdatedDelegate(GameObject head);
     public event HeadUpdatedDelegate OnHeadUpdated;
     public BaseChoreographer choreographer;
-    public Text debugText;
     public bool updateEarly = false;
     public bool trackRotation = true;
     public bool trackPosition = true;
@@ -19,6 +18,7 @@ public class CardboardHeadController : MonoBehaviour
         BaseChoreographer.PlayerAction.NONE;
     private int frameNumber = 0;
     private float startTime;
+    private bool debugMode = false;
 
     public Ray Gaze
     {
@@ -52,16 +52,12 @@ public class CardboardHeadController : MonoBehaviour
             UpdateHead();
         }
 
-        DebugInput();
-
-        frameNumber++;
-        float time = Time.time - startTime;
-        debugText.text = ((float) frameNumber / time) + "fps";
-        if (time > 1.0f)
+        if (debugMode)
         {
-            startTime = Time.time;
-            frameNumber = 0;
+            DebugInput();
         }
+
+        choreographer.CardboardTriggered = Cardboard.SDK.Triggered;
     }
 
     // Normally, update head pose now.
@@ -102,7 +98,7 @@ public class CardboardHeadController : MonoBehaviour
         float magnitude = acceleration.magnitude;
         const float nodTimeDelay = 0.2f;
         const float nodThreshold = 1.05f;
-        const float deepNodUpAngle = 10;
+        const float deepNodUpAngle = 5;
         const float deepNodDownAngle = 20;
         float deltaTime = Time.time - lastNodTime;
 
@@ -114,7 +110,6 @@ public class CardboardHeadController : MonoBehaviour
         float angle = Quaternion.Angle(gazeRotation, alignedStartRotation);
 
         //float signedAngle = SignedAngle(gazeRotation, startRotation);
-        debugText.text = "Angle is " + angle;
         
         if (isDeepNodding && angle <= deepNodUpAngle)
         {

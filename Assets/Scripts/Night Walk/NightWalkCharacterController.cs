@@ -213,6 +213,7 @@ public class NightWalkCharacterController : MonoBehaviour
     {
         isRolling = false;
         isRunning = false;
+
         StartCoroutine(FallCoroutine());
     }
 
