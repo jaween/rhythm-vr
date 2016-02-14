@@ -1,26 +1,16 @@
 Rhythm VR
 =========
-A small (work in progress) rhythm game in Virtual Reality.
-The particular game is a remake of the minigame 'Night Walk' from 
-Rhythm Heaven Fever.
+A rhythm game in Virtual Reality that uses head nodding as input.
+This particular game is a remake of the [ending sequence](https://www.youtube.com/watch?v=QhhoPxCWZeg) of
+'Rhythm Heaven Fever' for the Nintendo Wii.
 
-Written in Unity 5.3 and currently only supports Google Cardboard.
-
-Complete
---------
- * Cardboard VR support
- * Nod and deep-nod gesture detection
- * Player timing their inputs to the beats
- * Event triggers
- * Audio feedback 
+Written on top of Unity 5.3 and currently only supports Google Cardboard.
 
 To do
 -----
+ * Add support for more VR headsets
  * Add tutorial sequence
- * Add a nicer falling sequence
- * Add end game sequence
- * Add support for other VR headsets
- * Tweak the timings (specifically super-jump beats)
+ * Add The Huebirds of Happiness sequence
+ * Tweak the timings (specifically the high jump beats)
  * Cleanup code duplication (specifically around procedural animations)
- * Fix ledge grabbing position/animation
  * Fix fade in of platforms
