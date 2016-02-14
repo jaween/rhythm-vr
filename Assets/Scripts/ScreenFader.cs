@@ -13,21 +13,24 @@ public class ScreenFader : MonoBehaviour {
         SetRawImageAlpha(fadingImage, 0.0f);
     }
 
-    public void Fade(bool fadeToBlack, float duration)
+    public void Fade(bool fadeFromBlack, float duration)
     {
-        StartCoroutine(FadeCoroutine(fadeToBlack, duration));
+        StartCoroutine(FadeCoroutine(fadeFromBlack, duration));
     }
 
     private IEnumerator FadeCoroutine(bool fadeFromBlack, float duration)
     {
-        done = false;
-        float startTime = Time.time;
-        float interpolant = 0;
+        
         if (fadeFromBlack)
         {
             SetRawImageAlpha(fadingImage, 1.0f);
         }
-        while (interpolant <= 1.0)
+
+        // TODO(jaween): Why doesn't the fading adhere to the duration value? 
+        done = false;
+        float startTime = Time.time;
+        float interpolant = 0;
+        while (interpolant <= 1.0f)
         {
             float fromAlpha = fadingImage.color.a;
             float toAlpha = fadeFromBlack ? 0.0f : 1.0f;
