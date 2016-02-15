@@ -14,6 +14,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     public AudioSource attemptAudioSource;
     public AudioSource rollAAudioSource;
     public AudioSource rollBAudioSource;
+    public AudioSource popAudioSource;
     public AudioClip attemptGoodA;
     public AudioClip attemptGoodB;
     public AudioClip attemptBad;
@@ -45,6 +46,7 @@ public class NightWalkChoreograhper : BaseChoreographer
     private int goodTimings = 0;
     private int badTimings = 0;
     private int missTimings = 0;
+    private float lastTriggerTime = 0.0f;
     
     protected override void Initialise() 
     {
@@ -67,16 +69,12 @@ public class NightWalkChoreograhper : BaseChoreographer
 
     private void Update()
     {
-        // Switches audio between Japanese and English
-        if (isCardboardTriggered && controllableState && !gameComplete)
+        // TODO(jaween): Should we try to resync the audio at intervals?
+        /*if ((Time.time - musicStartTime) % 5.0f == 0.0f)
         {
-            float audioTime = musicAudioSource.time;
-            englishAudio = !englishAudio;
-            musicAudioSource.Stop();
-            musicAudioSource.clip = englishAudio ? englishMusic : japaneseMusic;
-            musicAudioSource.time = audioTime;
-            musicAudioSource.Play();
-        }
+            musicAudioSource.time = Time.time - musicStartTime;
+        }*/
+        SwitchAudioOnTriggerHold();
     }
 
     protected override void HandleInput(PlayerAction playerAction)
@@ -161,6 +159,7 @@ public class NightWalkChoreograhper : BaseChoreographer
             switch (trigger) {
                 case NightWalkTriggers.POP:
                     characterController.Pop();
+                    popAudioSource.Play();
                     break;
                 case NightWalkTriggers.ROLL_AUDIO:
                     rollAAudioSource.Play();
@@ -496,8 +495,8 @@ public class NightWalkChoreograhper : BaseChoreographer
     {
         const float secondsInAdvance = 5;
         const float secondsBehind = 4;
-        float leadingTime = musicAudioSource.time + secondsInAdvance;
-        float laggingTime = musicAudioSource.time - secondsBehind;
+        float leadingTime = Time.time - musicStartTime + secondsInAdvance;
+        float laggingTime = Time.time - musicStartTime - secondsBehind;
 
         if (nextIndexToInstantiate < timingsManager.Timings.Count)
         {
@@ -577,6 +576,26 @@ public class NightWalkChoreograhper : BaseChoreographer
         else
         {
             poleBox.SetPlatform(PoleBoxController.PlatformType.PLATFORM_MEDIUM);
+        }
+    }
+
+    private void SwitchAudioOnTriggerHold()
+    {
+        float deltaTime = 1.0f;
+
+        if (isCardboardTriggered)
+        {
+            deltaTime = Time.time - lastTriggerTime;
+            lastTriggerTime = Time.time;    
+        }
+
+        if (deltaTime < 0.5f)
+        {
+            englishAudio = !englishAudio;
+            musicAudioSource.Stop();
+            musicAudioSource.clip = englishAudio ? englishMusic : japaneseMusic;
+            musicAudioSource.time = Time.time - musicStartTime;
+            musicAudioSource.Play();
         }
     }
 

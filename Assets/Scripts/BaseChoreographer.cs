@@ -13,6 +13,7 @@ public abstract class BaseChoreographer : MonoBehaviour
 
     protected TimingsManager timingsManager;
     protected bool isCardboardTriggered = false;
+    protected float musicStartTime = 0;
 
     private PlayerAction storedPlayerAction = PlayerAction.NONE;
     private bool timingsHandled = false;
@@ -34,6 +35,7 @@ public abstract class BaseChoreographer : MonoBehaviour
     {
         Initialise();
         musicAudioSource.Play();
+        musicStartTime = Time.time;
     }
 
     private void FixedUpdate()

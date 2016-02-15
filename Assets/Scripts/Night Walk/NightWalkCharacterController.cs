@@ -9,7 +9,7 @@ public class NightWalkCharacterController : MonoBehaviour
     public GameObject groundNode;
 
     private Animator animator;
-    private bool isRunning = true;
+    private bool isMovingRight = true;
     private bool isJumping = false;
     private bool isHighJumping = false;
     private bool isStuntedJumping = false;
@@ -18,7 +18,7 @@ public class NightWalkCharacterController : MonoBehaviour
     private bool isFallingFromBalloons = false;
     private bool jumpWithLeftArm = false;
     private float jumpStartTime;
-    private float angle = 90 * Mathf.Deg2Rad;
+    private float angle;
     private float rollAngle = 0;
     private float ratioOfJump = 0;
     private float groundY;
@@ -26,12 +26,15 @@ public class NightWalkCharacterController : MonoBehaviour
     private int popIndex = 0;
     private float startY;
     private bool startedRunning = false;
+    private float startTime;
+    private float startAngle = 90 * Mathf.Deg2Rad;
 
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
         radius = transform.position.z;
         startY = transform.position.y;
+        startTime = Time.time;
     }
 
     private void Update()
@@ -43,9 +46,9 @@ public class NightWalkCharacterController : MonoBehaviour
     {
         const float degreesPerSecond = 11.5f;
         Vector3 newPosition = transform.position;
-        if (isRunning)
+        if (isMovingRight)
         {
-            angle -= degreesPerSecond * Mathf.Deg2Rad * Time.fixedDeltaTime;
+            angle = startAngle - degreesPerSecond * Mathf.Deg2Rad * (Time.time - startTime);
             newPosition.x = Mathf.Cos(angle) * radius;
             newPosition.z = Mathf.Sin(angle) * radius;
         }
@@ -212,7 +215,7 @@ public class NightWalkCharacterController : MonoBehaviour
     public void Fall()
     {
         isRolling = false;
-        isRunning = false;
+        isMovingRight = false;
 
         StartCoroutine(FallCoroutine());
     }
@@ -222,7 +225,7 @@ public class NightWalkCharacterController : MonoBehaviour
         Vector3 newPosition = transform.position;
         newPosition.y = groundY - 0.6f;
         transform.position = newPosition;
-        isRunning = false;
+        isMovingRight = false;
         isGrabbing = true;
         yield return new WaitForSeconds(1.0f);
 
