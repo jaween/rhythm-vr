@@ -6,6 +6,8 @@ This particular game is a remake of the [ending sequence](https://www.youtube.co
 
 Written on top of Unity 5.3 and currently only supports Google Cardboard.
 
+[![YouTube video thumbnail](http://img.youtube.com/vi/eBemO0HF3GY/0.jpg)](https://www.youtube.com/watch?v=eBemO0HF3GY)
+
 To do
 -----
  * Add support for more VR headsets
